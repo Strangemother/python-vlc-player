@@ -9,7 +9,34 @@ from PyQt5.QtWidgets import (
     )
 
 
-class VideoFrame(QFrame):
+class DragMixin(object):
+
+    def mousePressEvent(self, e):
+        print('DragMixin press')
+        self.offset = e.pos()
+
+    def mouseMoveEvent(self, e):
+        x = e.globalX()
+        y = e.globalY()
+
+        if self.offset is not None:
+            x_w = self.offset.x()
+            y_w = self.offset.y()
+            self.parent.move(x-x_w, y-y_w)
+            new_xy = "{}{}".format(x,y)
+            if self.last_xy != new_xy:
+                self.moved = True
+            self.last_xy = new_xy
+
+    def mouseReleaseEvent(self, e):
+        # print('Mouse release')
+
+        if self.offset is not None:
+            print('Finished drag')
+        self.offset = None
+
+
+class VideoFrame(QFrame, DragMixin):
     '''A Video player hosts the x server ot hwnd hook to VLC through as a QFrame
     The video player unit lives within the application - designed to be as
     dumb as possible.'''
@@ -39,68 +66,6 @@ class VideoFrame(QFrame):
 
     def leaveEvent(self, event):
         print( "VF Left")
-        return super(VideoFrame, self).leaveEvent(event)
-
-    def mousePressEvent(self, e):
-        if self.moved is False:
-            print('VF press')
-
-        self.last = "click"
-        self.is_mousedown = True
-        self.mouse_press_late_done = False
-
-        QTimer.singleShot(self.double_click_timeout * 2,
-                                self.mouse_press_late)
-        self.offset = e.pos()
-
-    def mouse_press_late(self):
-        if self.is_mousedown:
-            self.mouse_press_late_done = True
-            if self.moved is True:
-                print('dragging')
-            else:
-                print('Hold')
-
-    def mouseMoveEvent(self, e):
-        x = e.globalX()
-        y = e.globalY()
-
-
-        if self.offset is not None:
-            x_w = self.offset.x()
-            y_w = self.offset.y()
-            # self.parent.move(x-x_w, y-y_w)
-            new_xy = "{}{}".format(x,y)
-            if self.last_xy != new_xy:
-                self.moved = True
-            self.last_xy = new_xy
-
-        # self.parent.check_cursor_state(e.localPos())
-
-    def mouseReleaseEvent(self, e):
-        # print('Mouse release')
-        if self.mouse_press_late_done is True:
-            self.mouse_press_late_done = False
-            print('release hold')
-        elif self.moved is False:
-            print('Detected click')
-
-        if self.offset is not None:
-            if self.moved is True:
-                print('Finished drag')
-            self.moved = False
-            self.offset = None
-
-
-        self.is_mousedown = False
-
-        if self.last == "click":
-            QTimer.singleShot(self.double_click_timeout,
-                                self.mouse_click)
-        else:
-            # Perform double click action.
-            # self.mouse_doubleclick(e)
-            self.update()
 
     def mouseDoubleClickEvent(self, event):
         self.last = "double click"
