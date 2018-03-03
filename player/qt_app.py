@@ -17,17 +17,23 @@ from PyQt5.QtWidgets import (
     )
 
 from player import MediaPlayer
+from flags import FlagsMixin
+from keyboard import thread_listen as external_listener
 
 # Base settings to override
 SETTINGS = dict(
     # set the main window OS frame - set True to remove the OS frame
     frameless=False,
     json_file='config.json',
+    init_size=[500, 400],
+    player_title='My Fancy Player',
 )
+
 
 class App(object):
     '''A Non-Qt abstraction of all the components running the player
     '''
+
     def run(self, settings=None):
         self.app = QApplication(sys.argv)
         config = self.load_settings(settings)
@@ -54,8 +60,7 @@ class App(object):
         # An application can host more than one video panel
 
 
-
-class Overlay(QMainWindow):
+class Overlay(QMainWindow, FlagsMixin):
     '''An overlay is a standard (or standalone) window positon over
     the VideoFrame for presenting player information. Using a seperate layer
     bypasses issues with an external hooked hwnd frame, allowing fully
@@ -71,7 +76,8 @@ class Overlay(QMainWindow):
         super().__init__()
 
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setWindowFlags(self.flags)
+        # self.setWindowFlags(self.flags)
+        self.set_flags()
         self.setMouseTracking(True)
         self.setWindowTitle('Video Player Overlay')
 
