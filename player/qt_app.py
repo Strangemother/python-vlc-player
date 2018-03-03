@@ -4,7 +4,8 @@
 2. Overlay for screen extras
 """
 import sys
-
+import os
+import json
 from PyQt5 import QtGui
 from PyQt5.QtGui import QPainter, QColor, QFont, QPixmap
 from PyQt5.QtCore import Qt, QTimer
@@ -17,15 +18,38 @@ from PyQt5.QtWidgets import (
 
 from player import MediaPlayer
 
+# Base settings to override
+SETTINGS = dict(
+    # set the main window OS frame - set True to remove the OS frame
+    frameless=False,
+    json_file='config.json',
+)
+
 class App(object):
     '''A Non-Qt abstraction of all the components running the player
     '''
-    def run(self):
+    def run(self, settings=None):
         self.app = QApplication(sys.argv)
-        self.build_ui()
+        config = self.load_settings(settings)
+        self.build_ui(config)
 
-    def build_ui(self):
-        self.players = (MediaPlayer(), )
+    def load_settings(self, settings=None):
+        config = SETTINGS.copy()
+
+        fp = os.path.join(os.path.dirname(__file__), config['json_file'])
+        file_conf = {}
+        if os.path.isfile(fp):
+            with open(fp, 'r') as stream:
+                file_conf = json.load(stream)
+            config.update(file_conf)
+
+        if settings is not None:
+            config.update(settings)
+
+        return config
+
+    def build_ui(self, settings=None):
+        self.players = (MediaPlayer(settings=settings), )
         sys.exit(self.app.exec_())
         # An application can host more than one video panel
 

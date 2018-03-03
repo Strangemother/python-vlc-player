@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizeGrip
 from media import VideoFrame
 
 
@@ -9,15 +9,16 @@ class MediaPlayer(QWidget):
 
     frameless = False
 
-    def __init__(self):
+    def __init__(self, settings=None):
         super().__init__()
+        self.settings = settings or {}
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle('Video Player')
 
         # no windows buttons or edge
-        if self.frameless:
+        if self.settings.get('frameless', self.frameless):
             self.setWindowFlags(Qt.FramelessWindowHint)
             self.setFocusPolicy(Qt.WheelFocus)
         self.resize(500, 400)
@@ -37,6 +38,8 @@ class MediaPlayer(QWidget):
         #controls.setStyleSheet("background-color: red")
         layout.addWidget(controls, 1)
 
+        sizegrip = QSizeGrip(self)
+        layout.addWidget(sizegrip, 0, Qt.AlignBottom | Qt.AlignRight)
 
         self._layout = layout
         self.controls = controls
