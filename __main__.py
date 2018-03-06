@@ -1,4 +1,4 @@
-from qt_app import App
+from player.qt_app import App
 import sys
 
 

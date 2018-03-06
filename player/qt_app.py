@@ -8,7 +8,7 @@ import os
 import json
 from PyQt5 import QtGui
 from PyQt5.QtGui import QPainter, QColor, QFont, QPixmap
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QSize
 from PyQt5.QtWidgets import (
         QApplication, QWidget, QFrame, QHBoxLayout,
         QVBoxLayout, QLabel, QTextEdit, QMainWindow,
@@ -16,33 +16,84 @@ from PyQt5.QtWidgets import (
 
     )
 
-from player import MediaPlayer
-from flags import FlagsMixin
-from keyboard import thread_listen as external_listener
+from player.player import MediaPlayer
+from player.flags import FlagsMixin
+from player.keyboard import thread_listen as external_listener
+
 
 # Base settings to override
 SETTINGS = dict(
     # set the main window OS frame - set True to remove the OS frame
-    frameless=False,
+    frameless=True,
     json_file='config.json',
     init_size=[500, 400],
     player_title='My Fancy Player',
+    bezel=2,
+    assets='assets',
+    images='{assets}/images',
+    cache='{assets}/cache',
+    # Filename loaded initially
+    file="D:/movies/Rising Damp/104  Night Out.divx",
+    # If a file is given, should the app autoplay on init load
+    autoplay=True,
 )
+
+PLAYER_ROOT = os.path.abspath(os.path.dirname(__file__))
+RAISE = '__defraise__'
+
+
+def resolve_in(conf, name, default=RAISE):
+    '''Return a key `name` from the given conf `dict`. Resolved strings are
+    formatted through the same conf dict, returning a templated string.
+    '''
+    if (name in conf) is False and default == RAISE:
+        # Raise a default error early.
+        return conf.get(name)
+
+    val = conf.get(name, default)
+    return val.format(**conf)
+
+
+from player.media import png_asset
 
 
 class App(object):
-    '''A Non-Qt abstraction of all the components running the player
-    '''
-
-    def run(self, settings=None):
+    '''A Non-Qt abstraction of all the components running the player'''
+    built = False
+    def build(self, settings=None):
         self.app = QApplication(sys.argv)
         config = self.load_settings(settings)
+        self.config = config
         self.build_ui(config)
+        self.built=True
+
+    def run(self, settings=None):
+        if self.built is False:
+            self.build()
+        self.set_app_icon(self.config)
+        sys.exit(self.app.exec_())
+
+    def set_app_icon(self, config):
+
+        app = self.app
+        image_path = resolve_in(config, 'images')
+        app_icon = QtGui.QIcon()
+        icon_path = os.path.join(PLAYER_ROOT, image_path, 'teapot')
+
+        # app_icon.addFile(icon_path, QSize(16,16))
+        # app_icon.addFile(icon_path, QSize(24,24))
+        # app_icon.addFile(icon_path, QSize(32,32))
+        # app_icon.addFile(icon_path, QSize(48,48))
+        # app_icon.addFile(icon_path, QSize(256,256))
+
+        app_icon.addPixmap(png_asset(icon_path, size=256))
+        app.setWindowIcon(app_icon)
+        return app_icon
 
     def load_settings(self, settings=None):
         config = SETTINGS.copy()
 
-        fp = os.path.join(os.path.dirname(__file__), config['json_file'])
+        fp = os.path.join(PLAYER_ROOT, config['json_file'])
         file_conf = {}
         if os.path.isfile(fp):
             with open(fp, 'r') as stream:
@@ -55,8 +106,8 @@ class App(object):
         return config
 
     def build_ui(self, settings=None):
-        self.players = (MediaPlayer(settings=settings), )
-        sys.exit(self.app.exec_())
+        print(MediaPlayer)
+        self.players = (MediaPlayer(settings=settings, app=self.app), )
         # An application can host more than one video panel
 
 

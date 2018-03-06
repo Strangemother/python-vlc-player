@@ -21,18 +21,20 @@ class FlagsMixin(object):
             self.flags.remove(flag)
 
     def add_flag(self, flag):
+        if self.flags is None:
+            self.flags = [flag]
+            return
+
         if (flag in self.flags) is False:
             self.flags = list(self.flags).append(flag)
 
     def build_flags(self, flags=None):
         flags = flags or self.flags
 
-        res = 0
-        for f in self.flags:
-            res = operator.__or__(res, f)
-        return res
+        return flags
 
     def set_flags(self, flags=None):
         flags = flags or self.flags
         flag_object = self.build_flags(flags)
-        self.setWindowFlags(flag_object)
+        for f in flag_object:
+            self.setWindowFlag(f, True)
