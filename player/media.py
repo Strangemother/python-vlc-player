@@ -26,7 +26,8 @@ class DragMixin(object):
         if self.offset is not None:
             x_w = self.offset.x()
             y_w = self.offset.y()
-            self.parent.move(x-x_w, y-y_w)
+
+            self.move(x-x_w, y-y_w)
             new_xy = "{}{}".format(x,y)
             if self.last_xy != new_xy:
                 self.moved = True
@@ -79,25 +80,20 @@ class RGB():
 rgb = RGB()
 
 
-class VideoFrame(QFrame, DragMixin):
+class VideoFrame(QFrame):
     '''A Video player hosts the x server ot hwnd hook to VLC through as a QFrame
     The video player unit lives within the application - designed to be as
     dumb as possible.'''
 
-    double_click_timeout = 200
 
     def __init__(self, parent, app=None):
         super().__init__(parent)
         self.parent = parent
         self.app = app
-        self.offset = None
-        self.moved = False
-        self.last_xy = None
         self.is_mousedown = False
         self.setStyleSheet("background-color: #3f4d82;")
         self.setMinimumHeight(20)
-
-        self.setMouseTracking(True)
+        # self.setMouseTracking(True)
         self.initUI()
 
     def initUI(self):
@@ -116,20 +112,3 @@ class VideoFrame(QFrame, DragMixin):
         container.move(x, y)
 
         self.show()
-
-    def enterEvent(self, event):
-        print( "VF Entered")
-        return super(VideoFrame, self).enterEvent(event)
-
-    def leaveEvent(self, event):
-        print( "VF Left")
-
-    def mouseDoubleClickEvent(self, event):
-        self.last = "double click"
-        print('VF Double click')
-
-    def mouse_click(self):
-
-        if self.last == "click":
-            self.update()
-
