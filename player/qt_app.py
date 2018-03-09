@@ -109,32 +109,3 @@ class App(object):
         print(MediaPlayer)
         self.players = (MediaPlayer(settings=settings, app=self.app), )
         # An application can host more than one video panel
-
-
-class Overlay(QMainWindow, FlagsMixin):
-    '''An overlay is a standard (or standalone) window positon over
-    the VideoFrame for presenting player information. Using a seperate layer
-    bypasses issues with an external hooked hwnd frame, allowing fully
-    transparent text and graphics with the OS handling antialiasing
-
-    + transparent
-    + always on top
-    + no OS buttons
-    '''
-    flags = Qt.FramelessWindowHint | Qt.Tool | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint
-
-    def __init__(self):
-        super().__init__()
-
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        # self.setWindowFlags(self.flags)
-        self.set_flags()
-        self.setMouseTracking(True)
-        self.setWindowTitle('Video Player Overlay')
-
-        self.text = 'Overlay'
-        self.label = QLabel(self.text, self)
-        self.label.setStyleSheet("background-color: rgba(10,10,10, 0); color: white")
-
-        self.show()
-

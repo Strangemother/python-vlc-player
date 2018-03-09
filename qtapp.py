@@ -130,7 +130,7 @@ class View(QWidget):
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.WheelFocus)
         self.frame = VideoFrame(self)
-        # self.label = QLabel('TEXT', self)
+        # self.label = QLabel('TEXT', Co)
         # self.label.setAttribute(Qt.WA_TranslucentBackground)
         # self.label.setStyleSheet("background-color: rgba(10,10,10, 0); color: white")
         self.controls = Controls(self)
