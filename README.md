@@ -15,6 +15,11 @@ Play video using python and and VLC Codec.
 
     py setup.py install
 
+## Dev run
+
+    env3\Scripts\activate
+    python src
+
 
 ## Run
 

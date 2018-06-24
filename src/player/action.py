@@ -67,31 +67,252 @@ class KeyAction(object):
 
     def hook_keys(self, filepath=None):
         '''Start the action monitoring for the keyboard.'''
-        self.actions = Actions()
+        self.actions = Actions(self)
 
     def keyReleaseEvent(self, e):
         self.actions.event_up(e.key(), event=e)
 
     def keyPressEvent(self, e):
-
         self.actions.event_down(e.key(), event=e)
-        # q, esc
-        if e.key() in [81, 16777216]:
-            # self.controls.close()
-            self.close()
-            sys.exit(0)
 
+
+import os
+
+keymap = None
 
 class Actions(object):
-    '''Covert simple events to complex string monitoring.'''
+    '''Covert simple events to complex string monitoring.
+
+    CTRL+ALT+N
+    CTRL+N
+    UP>DOWN>LEFT>RIGHT
+    "window"
+    SHIFT * 5
+    '''
+
+    def __init__(self, owner=None):
+        self.down = []
+        self.space = {}
+        self.owner=owner
+        if keymap is None:
+            self.load_map()
+            self.tape = KeyTape(keymap, self.space, host=self.owner or self).load_keytape()
+
+    def load_map(self):
+        global keymap
+
+        keys = {}
+        fp = './assets/config/key-map.cfg'
+        afp = os.path.abspath(os.path.join( os.path.dirname(__file__), fp))
+        with open(afp, 'r') as stream:
+            for line in stream:
+                els = tuple(str.strip(x) for x in line.split('|'))
+                if len(els) != 2:
+                    print('BAD', els)
+
+                code, name = els
+                name = name.lower()
+                # print(els )
+                keys[name] = code
+        keymap = dict(keys)
 
     def event_up(self, num, event=None):
-        self.down.remove(num)
-        print( "Down Key", event.text(), event.key())
-
+        try:
+            self.down.remove(num)
+        except ValueError:
+            # not in list
+            pass
+        # print( "Down Key", event.text(), event.key())
+        self.tape.react('up', self.down)
 
     def event_down(self, num, event=None):
         self.down.append(num)
+        self.tape.react('down', self.down)
+
+
+class Key(object):
+    def __new__(cls, char, tape=None):
+        if isinstance(char, _Key):
+            return char
+        return _Key(char, tape=tape)
+
+
+class _Key(object):
+
+    strict = True
+
+    def __init__(self, char, tape=None):
+
+        self._or = []
+        self._add = []
+        self.tape = tape
+        self.line = tape.line if tape else None
+        self.group_id = tape.uuid if tape else -1
+        self.char = char.lower()
+        self.id = id(self)
+
+    def __unicode__(self):
+        return u'{}'.format(self.char)
+
+    def __repr__(self):
+        return "<Key {} (+{}) (|{})>".format(
+            self.id,
+            '+'.join((self.char, ) + tuple(x.char for x in self._add)),
+            len(self._or)
+            )
+
+    def __or__(self, other):
+        """Given a char or key, append an 'OR' strategy to the key map
+        """
+        item = Key(other, self.tape)
+        self._or.append(item)
+        pkm = self.tape is not None
+        if pkm:
+            print('Keeping self in tape', self)
+            self.tape.gl_keep(self)
+
+        return item
+
+    def __add__(self, other):
+        print('Push and')
+        self._add.append(Key(other, self.tape))
+        return self
+
+    def __eq__(self, other):
+        if isinstance(other, (str, )):
+            return self.char == other.lower()
+        if isinstance(other, _Key):
+            return self.char == other.char
+        return self.char == other
+
+
+    def match(self, keys, keymap, rkeymap):
+        #print(self, 'test', keys)
+        count = 0
+
+        if int(keymap.get(self.char)) in keys:
+            # print('Detect partial', self.char)
+            count += 1
+
+        for x in keys:
+            char = rkeymap.get(str(x))
+            if char is None:
+                print('Unmapped keycheck', x, char)
+            if char in self._or:
+                pass
+                # print('OR match potenial.', char)
+            if char in self._add:
+                #print('Partial map', char)
+                count += 1
+
+        self_len = len(self._add) + 1
+        if self_len == count:
+            # All the additional mapped buttons are down, including the
+            # initial character.
+
+            if self.strict is True:
+                if len(keys) == self_len:
+                    return True
+                else:
+                    print("Nearly", self)
+                    return False
+
+            return True
+
+        return False
+
+    def lower(self):
+        return self
+
+
+class KeyTape(dict):
+    '''Read python string like eval through a given context for keys
+    '''
+    def __init__(self, keymap, action_space=None, host=None):
+        self.host=host
+        self.action_space = self.build_space(action_space)
+        self.keymap = keymap
+        self.rkeymap = {y: x for x, y in keymap.items()}
+        self.keys = ()
+        a = sorted(list(keymap.keys()))
+        b = sorted({keymap[x]:x for x in keymap}.values())
+        try:
+            assert len(a) == len(b)
+        except AssertionError as e:
+             print('Dups detected', set(a) - set(b))
+
+    def __getitem__(self, key):
+        '''Given a key, convert to a manageablr'''
+        k = key.lower()
+        if self.keymap.get(k, None) is not None:
+            return Key(k, self)
+        raise KeyError('Key does not exist {}'.format(k))
+        return None
+
+    def gl_keep(self, key):
+        print('keep', key)
+        self.keys += ( (key, None, ), )
+        print('keep', len(self.keys))
+
+    def build_space(self, space=None):
+        space = space or {}
+        space['close'] = self.close
+        return space
+
+    def close(self):
+        self.host.close()
+        sys.exit(0)
+
+
+    def load_keytape(self):
+        fp = './assets/config/keys.cfg'
+        afp = os.path.abspath(os.path.join( os.path.dirname(__file__), fp))
+
+        km = KeyTape(self.keymap)
+        stack = None
+        key = None
+        keys = ()
+
+        with open(afp, 'r') as stream:
+            count = 0
+            for line in stream:
+                if line[0] == '$':
+                    line = line[1:]
+                    km.line = line
+                    km.uuid = len(keys)
+                    key = eval(line, km)
+                    print('KEYS', self.keys, km.keys)
+                    stack = []
+                elif line[0] == ' ':
+                    if key is None:
+                        print('Out of order', line)
+                    stack.append((count, line))
+                else:
+                    if (key is not None) and (stack is not None):
+                        keys += ( (key, stack,),)
+                count += 1
+
+        if (key is not None) and (stack is not None):
+            keys += ( (key.lower(), stack,),)
+
+        res = self.keys + keys + km.keys
+        self.keys = res
+        return self
+
+    def react(self, direction, keys):
+        for keyt in self.keys:
+            key, func_strs = keyt
+            if key.match(keys, self.keymap, self.rkeymap):
+                key, stack = self.keys[key.group_id]
+                print('line "{}":'.format(key.line.strip()))
+                for lineno, statement in stack:
+                    print('Running', statement)
+                    res = eval(statement, self.action_space)
+                    if callable(res):
+                        print('Calling', res)
+                        res()
+                print('\n')
+
 
 
 class Action(object):

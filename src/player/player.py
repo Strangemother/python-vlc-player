@@ -101,7 +101,7 @@ class MediaPlayer(MouseActionQWidget, KeyAction, ConfigMixin):
         if isinstance(geometry, str) is False:
             self.restoreGeometry(geometry)
 
-        self.hook_keys(settings.get('keyfile', None))
+        self.hook_keys(self.settings.get('keyfile', None))
 
     def closeEvent(self, event):
         geometry = self.saveGeometry()
@@ -181,6 +181,7 @@ class MediaPlayer(MouseActionQWidget, KeyAction, ConfigMixin):
     def resizeEvent(self, event):
         s  =event.size()
         self.overlay.resize(s.width(), s.height())
+
 
 class ProgressBar(QWidget):
     """docstring for ProgressBar"""

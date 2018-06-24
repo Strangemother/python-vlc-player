@@ -33,7 +33,7 @@ SETTINGS = dict(
     images='{assets}/images',
     cache='{assets}/cache',
     # Filename loaded initially
-    file="D:/movies/Rising Damp/104  Night Out.divx",
+    file="D:/movies/Rising Damp/107  Stand up and be Counted.divx",
     # If a file is given, should the app autoplay on init load
     autoplay=True,
 )
