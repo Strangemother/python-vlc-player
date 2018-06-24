@@ -2,6 +2,10 @@ env/
 env3/
 *.whl
 */js/vis*
+ffmpeg-20180310-950170b-win64-static
+libav-x86_64-w64-mingw32-11
+local.rdp
+src.spec
 
 #################
 ## Eclipse
