@@ -60,7 +60,7 @@ class App(object):
 
     def async_loop(self):
         with self.loop: ## context manager calls .close() when loop completes, and releases all resources
-            self.loop.run_until_complete(keyboard_interrupt_watch())
+            self.loop.run_until_complete(keyboard_interrupt_watch(self))
         sys.exit(self.app.exec_())
 
 
@@ -97,10 +97,15 @@ class App(object):
 
 
 @asyncio.coroutine
-async def keyboard_interrupt_watch():
+async def keyboard_interrupt_watch(app):
     # Loop slowly in the background pumping the asyc queue. Upon keyboard error
     # this will error earlier than a silent websocket message queue.
     print("First Worker Executed")
+    counter = 0
     while True:
         await asyncio.sleep(1)
+        counter += 1
+
+        if counter > 6:
+            app.players[0].get_player().stop()
         print("Executed")
