@@ -1,0 +1,3 @@
+"""
+Basic argument input handler.
+"""

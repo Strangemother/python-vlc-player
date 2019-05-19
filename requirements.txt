@@ -6,3 +6,5 @@ MarkupSafe==1.0
 PyQt5==5.10
 sip==4.19.7
 Werkzeug==0.14.1
+pyqt5 
+pynput 
