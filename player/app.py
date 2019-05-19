@@ -28,7 +28,9 @@ from PyQt5.QtWidgets import (
 import asset
 import settings
 from view.mediaplayer import MediaPlayer
+import asyncio
 
+from quamash import QEventLoop, QThreadExecutor
 
 class App(object):
     '''A Non-Qt abstraction of all the components running the player'''
@@ -40,6 +42,9 @@ class App(object):
     def build(self, init_settings=None):
         print('Build')
         self.app = QApplication(sys.argv)
+        self.loop = QEventLoop(self.app)
+        asyncio.set_event_loop(self.loop)
+
         config = settings.load_settings(init_settings)
         self.config = config
         self.build_ui(config)
@@ -51,7 +56,14 @@ class App(object):
             self.build()
         print('Run')
         self.set_app_icon(self.config)
+        self.async_loop()
+
+    def async_loop(self):
+        with self.loop: ## context manager calls .close() when loop completes, and releases all resources
+            self.loop.run_until_complete(keyboard_interrupt_watch())
         sys.exit(self.app.exec_())
+
+
 
     def set_app_icon(self, config):
         name = 'teapot'
@@ -78,8 +90,17 @@ class App(object):
 
     def build_ui(self, settings=None):
         print('Build UI')
-        self.players = ( MediaPlayer(settings=settings, app=self.app), )
+        self.players = (MediaPlayer(settings=settings, app=self.app), )
         # An application can host more than one video panel
 
 
 
+
+@asyncio.coroutine
+async def keyboard_interrupt_watch():
+    # Loop slowly in the background pumping the asyc queue. Upon keyboard error
+    # this will error earlier than a silent websocket message queue.
+    print("First Worker Executed")
+    while True:
+        await asyncio.sleep(1)
+        print("Executed")
