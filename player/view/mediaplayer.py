@@ -3,10 +3,15 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QMenu, QAction
 from PyQt5.QtCore import Qt, QSettings, pyqtSignal, QTimer
 
 
+
+from input.mouse import MouseActionQWidgetBus, ContextMenuMixin
+from view.overlay import OverlayMixin
 from view.frame import VideoFrame
 from view import api, overlay
+from bus import get_bus
 
 import flags
+
 
 class AbstractVLC(object):
     instance = None
@@ -34,64 +39,9 @@ class MoveEventMixin(object):
         return super(MoveEventMixin, self).moveEvent(event)
 
 
-from input.mouse import MouseActionQWidget
-
-
-class OverlayMixin(object):
-
-    def overlay_above_all(self):
-        self.overlay.above_all()
-
-    def init_overlay(self):
-        self.overlay = overlay.Overlay(self)
-        self.resized.connect(self.overlay_above_all)
-        self.moved.connect(self.overlay_above_all)
-        self.play_event.connect(self.overlay_above_all)
-
-
-class ContextMenuMixin(object):
-
-    pop_menu = None
-
-    def on_context_menu(self, point):
-        # show context menu
-        print('context', point)
-        self.pop_menu.exec_(self.mapToGlobal(point))
-
-    def create_mouse_menu(self):
-        # set button context menu policy
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.on_context_menu)
-
-        # mainMenu = self.menuBar()
-        # fileMenu = mainMenu.addMenu('File')
-        # editMenu = mainMenu.addMenu('Edit')
-        # viewMenu = mainMenu.addMenu('View')
-        # searchMenu = mainMenu.addMenu('Search')
-        # toolsMenu = mainMenu.addMenu('Tools')
-        # helpMenu = mainMenu.addMenu('Help')
-
-        # create context menu
-        self.pop_menu = QMenu(self)
-        toggle_play = QAction('&Play | &Pause', self)
-        self.pop_menu.addAction(toggle_play)
-        toggle_play.triggered.connect(self.toggle_play_triggered)
-        self.pop_menu.addAction(QAction('test1', self))
-        self.pop_menu.addSeparator()
-        quit_app = QAction('&Quit', self)
-        quit_app.triggered.connect(self.quit_app_triggered)
-        self.pop_menu.addAction(quit_app)
-        self.pop_menu.setStyleSheet("color: white")
-
-    def toggle_play_triggered(self, event):
-        print('toggle play pause')
-
-    def quit_app_triggered(self, event):
-        print('exit')
-
 class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
                   ContextMenuMixin,
-                  MouseActionQWidget,
+                  MouseActionQWidgetBus,
                   flags.FlagsMixin, QWidget, AbstractVLC):
 
     player = None
@@ -111,11 +61,27 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
         self.app = app
         self.settings = settings or {}
         self.sys_conf = QSettings('SMPlayer', 'MediaPlayer')
+        self.bus = get_bus()
 
         if build is True:
             self.create_ui()
 
+        self.setAcceptDrops(True)
+
+
+    def dragEnterEvent(self, e):
+        mime = e.mimeData()
+        print('dragEnter', mime.urls())
+        e.accept()
+
+    def dropEvent(self, e):
+        mime = e.mimeData()
+        #mime.dumpObjectInfo()
+        self.play(e.mimeData().text())
+
+
     def create_ui(self):
+        self.bus.emit('create_media_player')
         self.setFocusPolicy(Qt.WheelFocus)
         self.resize(500, 400)
 
@@ -128,12 +94,19 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
         self.setStyleSheet("background-color: {}".format(color))
         self.present()
 
+
     def present(self):
+        self.bus.emit('pre-present')
         self.build_view()
         self.show()
         self.init_overlay()
         self.overlay_above_all()
         self.create_mouse_menu()
+        self.bus.emit('presented')
+
+    def mouse_down(self, event):
+        self.overlay_above_all()
+        super().mouse_down(event)
 
     def build_view(self):
 
@@ -144,7 +117,6 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
         self.layout = layout
 
         layout.addWidget(frame, 10)
-
         #controls = QWidget()
         #self.progress = ProgressBar(self)
         #controls.setStyleSheet("background-color: red")
@@ -153,14 +125,16 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
         self.setLayout(layout)
         # controls = ControlPanel(self)
         # self.controls = controls
+
         self.show()
 
-        self.bind_window_frame(frame)
+
+        self.bind_player_frame(frame)
         uri = self.settings.get('file', None)
         if uri is not None:
             self.play(uri)
 
-    def bind_window_frame(self, frame):
+    def bind_player_frame(self, frame):
         frame_win_id = frame.winId()
         player = self.get_player()
         print('Bind', player, frame_win_id)
@@ -189,7 +163,7 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
 
         player.set_media(vlc.media_new(uri))
         self.setWindowTitle(uri)
-
+        self.bus.emit('set_media', uri)
         return player
 
     def play(self, uri=None, player=None):
@@ -201,3 +175,4 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
         player.play()
         QTimer.singleShot(10, self.play_event.emit)
         #self.play_event.emit()
+        self.bus.emit('play', uri)

@@ -1,0 +1,104 @@
+div#mynetwork {
+    height: 700px;
+    border: solid 1px #CCC;
+}
+
+canvas {
+    background: #EFEFEF;
+}
+
+
+div#colormap {
+    /* border: solid; */
+    width: 300px;
+    display: flex;
+}
+
+#colormap ul {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#colormap ul li {
+    font-size: 1.1em;
+    display: flex;
+    width: 100%;
+    letter-spacing: 0.5px;
+}
+
+#colormap ul li span {
+    display: flex;
+    width: 50%;
+    padding: 0.1em 1em;
+    margin: 1px 0;
+}
+
+.network-extras {
+    display: flex;
+    border: solid;
+}
+
+.question-input {
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    /* overflow: auto; */
+    height: 220px;
+}
+
+.question-input input {
+    font-family: monospace;
+    font-size: 1.3em;
+    margin-bottom: 0.5em;
+}
+
+.list-messages .messages .message {
+    /* border: solid; */
+    display: flex;
+    width: 100%;
+}
+
+.list-messages .messages .message ul.token {
+    display: flex;
+}
+
+.message span.action {
+    min-width: 37%;
+    /* flex-grow: 1; */
+}
+
+.message span.tokens {
+    flex-grow: 1;
+}
+
+.question-input .row.list-messages {
+    display: flex;
+    overflow: auto;
+    margin: 0 1em;
+}
+
+.question-input .row {
+    margin: 0;
+}
+
+ul.messages {
+    width: 100%;
+}
+
+#network .message ul.tokens li.token {
+    padding: 0;
+    text-align: right;
+    display: flex;
+}
+
+#network .message ul.tokens li.token span {
+    flex-grow: 1;
+    /* display: flex; */
+    width: 100%;
+    padding: 0;
+}
+
+.message ul.tokens li.token span.word-type {
+    width: 25%;
+}

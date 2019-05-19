@@ -13,6 +13,18 @@ from input.mouse import MouseActionQWidget
 #from player.action import MouseActionQWidget
 
 
+class OverlayMixin(object):
+
+    def overlay_above_all(self):
+        self.overlay.above_all()
+
+    def init_overlay(self):
+        self.overlay = Overlay(self)
+        self.resized.connect(self.overlay_above_all)
+        self.moved.connect(self.overlay_above_all)
+        self.play_event.connect(self.overlay_above_all)
+
+
 class Overlay(QMainWindow, MouseActionQWidget, FlagsMixin):
     '''An overlay is a standard (or standalone) window positon over
     the VideoFrame for presenting player information. Using a seperate layer
@@ -92,19 +104,15 @@ class Overlay(QMainWindow, MouseActionQWidget, FlagsMixin):
 
             self.parent.move(event.globalX() - x,  event.globalY() - y)
 
-
     def paintEvent(self, e):
 
         qp = QPainter()
         qp.begin(self)
         self._step += 1
-        self.drawRectangles(qp)
+        self.draw_frame(qp)
         qp.end()
-        #self.update()
-        if self._step > 500:
-            self._step = 0
 
-    def drawRectangles(self, qp):
+    def draw_frame(self, qp):
 
         col = QColor(0, 0, 0)
         col.setNamedColor('#d4d4d4')

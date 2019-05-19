@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Present</title>
+    <!--Import Google Icon Font-->
+
+    <!--Import materialize.css-->
+    <link type="text/css" rel="stylesheet" href="/static/css/materialize.min.css"  media="screen,projection"/>
+    <link type="text/css" rel="stylesheet" href="/static/css/websocket.css"  media="screen,projection"/>
+    <link type="text/css" rel="stylesheet" href="/static/css/main.css"  media="screen,projection"/>
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script type="text/javascript" src="/static/js/vis-4.20.0/dist/vis.js"></script>
+    <link href="/static/js/vis-4.20.0/dist/vis-network.min.css" rel="stylesheet" type="text/css" />
+
+
+</head>
+</head>
+<body>
+
+<div class="container row">
+    <div class="col s12">
+        <ul class="tabs">
+            <li class="tab col s2"><a href="#main">Main</a></li>
+        </ul>
+    </div>
+</div>
+
+<div id="main">
+    <div class="row">
+        <a class="waves-effect waves-light btn" @click='hit("/start")'>Start</a>
+
+    </div>
+
+    <div class="row">
+
+        <div class="input-field col s10">
+            <input v-model="last.uri" id="filename" type="text" class="validate">
+            <label class="active" for="filename">URI</label>
+        </div>
+        <div>
+            <a class="waves-effect waves-light btn" @click='load(last.uri)'>Load</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <a class="waves-effect waves-light btn" @click='post("play", {uri: last.uri})'>Start</a>
+        <a class="waves-effect waves-light btn" @click='post("stop", {uri: last.uri})'>Stop</a>
+
+    </div>
+</div>
+
+<script type="text/javascript" src="/static/js/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="/static/js/materialize.js"></script>
+
+<script type="text/javascript" src="/static/js/vue.js"></script>
+<script type="text/javascript" src="/static/js/main.js"></script>
+
+</body>
+</html>

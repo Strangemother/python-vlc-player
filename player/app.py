@@ -34,6 +34,9 @@ class App(object):
     '''A Non-Qt abstraction of all the components running the player'''
     built = False
 
+    def __init__(self, argv=None):
+        self.argv = argv
+
     def build(self, init_settings=None):
         print('Build')
         self.app = QApplication(sys.argv)
@@ -77,5 +80,6 @@ class App(object):
         print('Build UI')
         self.players = ( MediaPlayer(settings=settings, app=self.app), )
         # An application can host more than one video panel
+
 
 

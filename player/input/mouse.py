@@ -1,4 +1,9 @@
 from PyQt5.QtWidgets import QWidget
+from bus import get_bus
+from PyQt5.QtCore import Qt, QSettings, pyqtSignal, QTimer
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QMenu, QAction
+
+
 
 class MouseActionQWidget(QWidget):
     """Attach mouse click, doubleclick and dragging motion.
@@ -92,4 +97,80 @@ class MouseActionQWidget(QWidget):
         '''Action override for the event without altering _builtin_ functionality'''
         pass
 
+
+class MouseActionQWidgetBus(MouseActionQWidget):
+    def __init__(self, *a, **kw):
+        super().__init__(*a, **kw)
+        self.bus = get_bus()
+
+    def mouse_double_press(self, event):
+        '''Action override for the event without altering _builtin_ functionality'''
+        self.bus.emit('mouse_double_press', event)
+
+    def mouse_move(self, event):
+        '''Action override for the event without altering _builtin_ functionality'''
+        self.bus.emit('mouse_move', event)
+
+    def mouse_down(self, event):
+        '''Action override for the event without altering _builtin_ functionality'''
+        self.bus.emit('mouse_down', event)
+
+    def mouse_up(self, event):
+        '''Action override for the event without altering _builtin_ functionality'''
+        self.bus.emit('self', event)
+
+    def mouse_enter(self, event):
+        '''Action override for the event without altering _builtin_ functionality'''
+        self.bus.emit('mouse_enter', event)
+
+    def mouse_leave(self, event):
+        '''Action override for the event without altering _builtin_ functionality'''
+        self.bus.emit('mouse_leave', event)
+
+    def mouse_wheel(self, event):
+        '''Action override for the event without altering _builtin_ functionality'''
+        self.bus.emit('mouse_wheel', event)
+
+
+class ContextMenuMixin(object):
+    """Apply a 'right-click' context ment to the interface. Upon 'context'
+    the 'pop_menu' will display the loaded QMenu
+    """
+    pop_menu = None
+
+    def on_context_menu(self, point):
+        # show context menu
+        print('context', point)
+        self.pop_menu.exec_(self.mapToGlobal(point))
+
+    def create_mouse_menu(self):
+        # set button context menu policy
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.on_context_menu)
+
+        # mainMenu = self.menuBar()
+        # fileMenu = mainMenu.addMenu('File')
+        # editMenu = mainMenu.addMenu('Edit')
+        # viewMenu = mainMenu.addMenu('View')
+        # searchMenu = mainMenu.addMenu('Search')
+        # toolsMenu = mainMenu.addMenu('Tools')
+        # helpMenu = mainMenu.addMenu('Help')
+
+        # create context menu
+        self.pop_menu = QMenu(self)
+        toggle_play = QAction('&Play | &Pause', self)
+        self.pop_menu.addAction(toggle_play)
+        toggle_play.triggered.connect(self.toggle_play_triggered)
+        self.pop_menu.addAction(QAction('test1', self))
+        self.pop_menu.addSeparator()
+        quit_app = QAction('&Quit', self)
+        quit_app.triggered.connect(self.quit_app_triggered)
+        self.pop_menu.addAction(quit_app)
+        self.pop_menu.setStyleSheet("color: white")
+
+    def toggle_play_triggered(self, event):
+        print('toggle play pause')
+
+    def quit_app_triggered(self, event):
+        print('exit')
 

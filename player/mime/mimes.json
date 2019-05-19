@@ -1,0 +1,317 @@
+{
+    "audio/x-pn-realaudio": [
+        "rm",
+        "ram",
+        "rpm",
+        "ra",
+        "-plugin",
+        "rmm",
+        "rmp"
+    ],
+    "video/x-ms-wm": [
+        "wmv",
+        "wmx",
+        "x",
+        "v",
+        "wm"
+    ],
+    "application/sdp": [
+        "sdp"
+    ],
+    "video/avi": [
+        "avi"
+    ],
+    "audio/x-aiff": [
+        "c",
+        "aiff",
+        "aifc",
+        "aif"
+    ],
+    "audio/mpeg": [
+        "m2a",
+        "3",
+        "mpg",
+        "mp2",
+        "mpa",
+        "mp3",
+        "mpga"
+    ],
+    "video/vnd.mpegurl": [
+        "mxu",
+        "m4u"
+    ],
+    "audio/x-pn-realaudio-plugin": [
+        "ra",
+        "rpm",
+        "rmp"
+    ],
+    "video/ogg": [
+        "ogv",
+        "ogm"
+    ],
+    "audio/x-mpeg": [
+        "mp2",
+        "url",
+        "-3",
+        "mp3",
+        "m3u"
+    ],
+    "video/mpeg": [
+        "vob",
+        "mpe",
+        "m1v",
+        "mp2",
+        "mpa",
+        "m2v",
+        "mpg",
+        "dat",
+        "mp3",
+        "mpeg"
+    ],
+    "audio/x-gsm": [
+        "gsm",
+        "gsd"
+    ],
+    "audio/x-xm": [
+        "xm"
+    ],
+    "audio/x-scpls": [
+        "xpl",
+        "pls"
+    ],
+    "application/x-matroska": [
+        "mkv"
+    ],
+    "video/x-fli": [
+        "c",
+        "flc",
+        "fli"
+    ],
+    "video/mp4": [
+        "m4v",
+        "f4p",
+        "f4v",
+        "mp4"
+    ],
+    "audio/x-mod": [
+        "m15",
+        "669",
+        "uni",
+        "ult",
+        "mtm",
+        "mod",
+        "XM"
+    ],
+    "application/ogg": [
+        "ogg",
+        "ogx"
+    ],
+    "audio/3gpp": [
+        "3gp",
+        "2",
+        "3g2"
+    ],
+    "application/vnd.rn-realmedia": [
+        "rmvb",
+        "rm",
+        "-vbr",
+        "-secure",
+        "rms"
+    ],
+    "audio/basic": [
+        "snd",
+        "au"
+    ],
+    "video/quicktime": [
+        "mov",
+        "moov",
+        "qt",
+        "qtvr"
+    ],
+    "audio/ogg": [
+        "ogg",
+        "oga",
+        "opus",
+        "spx"
+    ],
+    "video/3gpp2": [
+        "3g2"
+    ],
+    "audio/x-realaudio": [
+        "ra"
+    ],
+    "video/x-ms-asf-plugin": [
+        "asx"
+    ],
+    "video/x-m4v": [
+        "m4v"
+    ],
+    "audio/midi": [
+        "mid",
+        "audio/x-midi",
+        "midi",
+        "kar"
+    ],
+    "audio/mp4": [
+        "aac",
+        "a-latm",
+        "m4a",
+        "f4b",
+        "f4a",
+        "m4p",
+        "mp4a",
+        "m4b"
+    ],
+    "audio/x-adpcm": [
+        "snd"
+    ],
+    "audio/3gpp2": [
+        "3g2"
+    ],
+    "application/x-cd-image": [
+        "iso"
+    ],
+    "video/3gp": [
+        "3gp",
+        "p",
+        "p2",
+        "3gpp",
+        "3g2"
+    ],
+    "video/x-ms-asf": [
+        "asx",
+        "-plugin",
+        "asf"
+    ],
+    "audio/vnd.dts": [
+        "dts",
+        "dtshd",
+        ".hd"
+    ],
+    "application/vnd.ms-wpl": [
+        "wpl"
+    ],
+    "audio/vnd.dts.hd": [
+        "dtshd"
+    ],
+    "video/x-msvideo": [
+        "avi"
+    ],
+    "video/x-mpeg": [
+        "mp2",
+        "mp3"
+    ],
+    "audio/wav": [
+        "wav",
+        "wv",
+        "wvc",
+        "pack"
+    ],
+    "application/x-shockwave-flash": [
+        "swf"
+    ],
+    "application/xspf+xml": [
+        "xspf"
+    ],
+    "video/x-ms-wmx": [
+        "wmx"
+    ],
+    "video/msvideo": [
+        "avi"
+    ],
+    "audio/webm": [
+        "weba"
+    ],
+    "audio/x-ms-wma": [
+        "wma"
+    ],
+    "audio/ac3": [
+        "ac3"
+    ],
+    "video/x-ms-wmv": [
+        "wmv"
+    ],
+    "audio/aac": [
+        "aac"
+    ],
+    "video/x-nsv": [
+        "nsv",
+        "NSV"
+    ],
+    "video/x-anim": [
+        "anim[1-9j]"
+    ],
+    "audio/x-s3m": [
+        "s3m"
+    ],
+    "application/vnd.rn-realmedia-vbr": [
+        "rmvb"
+    ],
+    "video/x-ms-wvx": [
+        "wvx"
+    ],
+    "video/webm": [
+        "webm"
+    ],
+    "audio/x-m4a": [
+        "m4a"
+    ],
+    "audio/x-mpegurl": [
+        "m3u"
+    ],
+    "video/divx": [
+        "div",
+        "divx"
+    ],
+    "audio/x-flac": [
+        "flac"
+    ],
+    "audio/x-ms-asx": [],
+    "audio/flac": [
+        "flac"
+    ],
+    "image/vnd.rn-realpix": [
+        "rp"
+    ],
+    "video/x-flv": [
+        "flv"
+    ],
+    "audio/x-wav": [
+        "wav"
+    ],
+    "audio/x-ms-wax": [
+        "wax"
+    ],
+    "audio/vnd.rn-realaudio": [
+        "ra"
+    ],
+    "video/3gpp": [
+        "3gp",
+        "3g2",
+        "3gpp",
+        "2"
+    ],
+    "application/mxf": [
+        "mxf"
+    ],
+    "video/x-avi": [],
+    "video/vnd.rn-realvideo": [
+        "rv"
+    ],
+    "audio/x-mp3": [
+        "-playlist"
+    ],
+    "video/dv": [
+        "dif",
+        "dv"
+    ],
+    "application/vnd.apple.mpegurl": [
+        "m3u8"
+    ],
+    "audio/x-aac": [
+        "aac"
+    ],
+    "video/fli": [
+        "fli"
+    ]
+}
