@@ -169,6 +169,7 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
     def play(self, uri=None, player=None):
         if uri is not None:
             player = self.set_media(uri)
+
         if player is None:
             player = self.get_player()
 

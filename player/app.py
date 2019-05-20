@@ -44,7 +44,9 @@ class App(object):
         self.app = QApplication(sys.argv)
         self.loop = QEventLoop(self.app)
         asyncio.set_event_loop(self.loop)
+        self.configure(init_settings)
 
+    def configure(self, init_settings):
         config = settings.load_settings(init_settings)
         self.config = config
         self.build_ui(config)
@@ -57,13 +59,6 @@ class App(object):
         print('Run')
         self.set_app_icon(self.config)
         self.async_loop()
-
-    def async_loop(self):
-        with self.loop: ## context manager calls .close() when loop completes, and releases all resources
-            self.loop.run_until_complete(keyboard_interrupt_watch(self))
-        sys.exit(self.app.exec_())
-
-
 
     def set_app_icon(self, config):
         name = 'teapot'
@@ -93,19 +88,34 @@ class App(object):
         self.players = (MediaPlayer(settings=settings, app=self.app), )
         # An application can host more than one video panel
 
+    def async_loop(self):
+        try:
+            with self.loop: ## context manager calls .close() when loop completes, and releases all resources
+                self.loop.run_until_complete(aync_manager(self))
+        except CancelledError:
+            print('Background death.')
+        sys.exit(self.app.exec_())
 
+
+from concurrent.futures import CancelledError
 
 
 @asyncio.coroutine
-async def keyboard_interrupt_watch(app):
+async def aync_manager(app):
     # Loop slowly in the background pumping the asyc queue. Upon keyboard error
     # this will error earlier than a silent websocket message queue.
     print("First Worker Executed")
     counter = 0
     while True:
-        await asyncio.sleep(1)
+        try:
+            await asyncio.sleep(1)
+        except CancelledError:
+            print('Background death.')
+
         counter += 1
 
         if counter > 6:
             app.players[0].get_player().stop()
+            counter = 0
+            print('Executing shutdown')
         print("Executed")
