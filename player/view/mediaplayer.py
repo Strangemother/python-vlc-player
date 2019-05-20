@@ -39,6 +39,8 @@ class MoveEventMixin(object):
         return super(MoveEventMixin, self).moveEvent(event)
 
 
+import atexit
+
 class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
                   ContextMenuMixin,
                   MouseActionQWidgetBus,
@@ -67,6 +69,7 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
             self.create_ui()
 
         self.setAcceptDrops(True)
+        atexit.register(self.kill)
 
 
     def dragEnterEvent(self, e):
@@ -177,3 +180,9 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
         QTimer.singleShot(10, self.play_event.emit)
         #self.play_event.emit()
         self.bus.emit('play', uri)
+
+    def kill(self):
+        print('MediaPlayer kill')
+        player = self.get_player()
+        player.stop()
+        del self.player

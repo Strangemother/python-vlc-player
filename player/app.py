@@ -31,17 +31,26 @@ from view.mediaplayer import MediaPlayer
 import asyncio
 
 from quamash import QEventLoop, QThreadExecutor
+from bus import async_mananger
+from concurrent.futures import CancelledError, ProcessPoolExecutor
+import os
+
+import bus
+
 
 class App(object):
-    '''A Non-Qt abstraction of all the components running the player'''
+    '''A Non-Qt abstraction of all the components running the player
+    '''
     built = False
 
     def __init__(self, argv=None):
         self.argv = argv
 
     def build(self, init_settings=None):
-        print('Build')
-        self.app = QApplication(sys.argv)
+        print("\n!! - App::build", os.getpid(), os.getppid())
+        self.app = QApp(sys.argv)
+        self.app.aboutToQuit.connect(self.kill)
+
         self.loop = QEventLoop(self.app)
         asyncio.set_event_loop(self.loop)
         self.configure(init_settings)
@@ -59,6 +68,7 @@ class App(object):
         print('Run')
         self.set_app_icon(self.config)
         self.async_loop()
+        #self.wait_exit()
 
     def set_app_icon(self, config):
         name = 'teapot'
@@ -88,34 +98,41 @@ class App(object):
         self.players = (MediaPlayer(settings=settings, app=self.app), )
         # An application can host more than one video panel
 
+    def kill(self):
+        print('App Kill')
+        bus.get_bus().close()
+        for player in self.players:
+            player.player.stop()
+
     def async_loop(self):
+        error = None
+        loop = asyncio.get_event_loop()
         try:
-            with self.loop: ## context manager calls .close() when loop completes, and releases all resources
-                self.loop.run_until_complete(aync_manager(self))
-        except CancelledError:
-            print('Background death.')
-        sys.exit(self.app.exec_())
+            loop.run_until_complete(async_mananger(self))
+            # loop.run_forever()
+        except Exception as e:
+            print("Except of async_mananger::", e)
+            error = e
+        finally:
+            for task in asyncio.Task.all_tasks():
+                task.cancel()
+            print('Closing loop')
+            loop.run_until_complete(loop.shutdown_asyncgens())
+            loop.close()
 
+        print('async_loop closed')
+        if error:
+            sys.exit(1)
+        self.wait_exit()
 
-from concurrent.futures import CancelledError
+    def wait_exit(self):
+        print('wait_exit')
+        ev  = self.app.exec_()
+        print('Closed. sys.exit', ev)
+        #asyncio.run_coroutine_threadsafe(async_mananger(self), loop)
+        # if error:
+        #     raise error
+        sys.exit(ev)
 
-
-@asyncio.coroutine
-async def aync_manager(app):
-    # Loop slowly in the background pumping the asyc queue. Upon keyboard error
-    # this will error earlier than a silent websocket message queue.
-    print("First Worker Executed")
-    counter = 0
-    while True:
-        try:
-            await asyncio.sleep(1)
-        except CancelledError:
-            print('Background death.')
-
-        counter += 1
-
-        if counter > 6:
-            app.players[0].get_player().stop()
-            counter = 0
-            print('Executing shutdown')
-        print("Executed")
+class QApp(QApplication):
+    pass
