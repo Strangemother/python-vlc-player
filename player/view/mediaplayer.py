@@ -28,6 +28,7 @@ class ResizeEventMixin(object):
 
     def resizeEvent(self, event):
         self.resized.emit()
+        self.bus.resize(id(self), event)
         return super(ResizeEventMixin, self).resizeEvent(event)
 
 
@@ -36,6 +37,7 @@ class MoveEventMixin(object):
 
     def moveEvent(self, event):
         self.moved.emit()
+        self.bus.move( id(self), event)
         return super(MoveEventMixin, self).moveEvent(event)
 
 
@@ -76,36 +78,44 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
         mime = e.mimeData()
         print('dragEnter', mime.urls())
         e.accept()
+        self.bus.drop_event(e, 'dragdrop-enter')
 
     def dropEvent(self, e):
         mime = e.mimeData()
         #mime.dumpObjectInfo()
         self.play(e.mimeData().text())
+        self.bus.drop_event(e)
 
+    def gs(self, key, default=None):
+        return self.settings.get(key, default)
 
     def create_ui(self):
-        self.bus.emit('create_media_player')
+        self.bus.emit('create_media_player', id(self))
         self.setFocusPolicy(Qt.WheelFocus)
-        self.resize(500, 400)
+        gs = self.gs
+        self.resize(*gs('init_size', (500,400,)))
 
+        self.apply_geometry()
+
+        self.set_flags()
+        color = self.settings.get('background-color', gs('background_color'))
+        self.setStyleSheet("background-color: {}".format(color))
+        self.present()
+
+    def apply_geometry(self):
         geometry = self.sys_conf.value('geometry', '')
         if isinstance(geometry, str) is False:
             self.restoreGeometry(geometry)
 
-        self.set_flags()
-        color = self.settings.get('background-color',  '#3f4d82')
-        self.setStyleSheet("background-color: {}".format(color))
-        self.present()
-
 
     def present(self):
-        self.bus.emit('pre-present')
+        self.bus.emit('pre-present', id(self))
         self.build_view()
         self.show()
         self.init_overlay()
         self.overlay_above_all()
         self.create_mouse_menu()
-        self.bus.emit('presented')
+        self.bus.emit('presented', id(self))
 
     def mouse_down(self, event):
         self.overlay_above_all()
@@ -133,7 +143,7 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
 
 
         self.bind_player_frame(frame)
-        uri = self.settings.get('file', None)
+        uri = self.gs('file', None)
         if uri is not None:
             self.play(uri)
 
@@ -166,7 +176,7 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
 
         player.set_media(vlc.media_new(uri))
         self.setWindowTitle(uri)
-        self.bus.emit('set_media', uri)
+        self.bus.emit('set_media', id(self), uri)
         return player
 
     def play(self, uri=None, player=None):
@@ -179,9 +189,10 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
         player.play()
         QTimer.singleShot(10, self.play_event.emit)
         #self.play_event.emit()
-        self.bus.emit('play', uri)
+        self.bus.emit('play', id(self), uri)
 
     def kill(self):
+        self.bus.emit('kill', id(self))
         print('MediaPlayer kill')
         player = self.get_player()
         player.stop()

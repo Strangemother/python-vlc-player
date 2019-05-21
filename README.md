@@ -138,6 +138,41 @@ I full-metal-jacket plugin system. To allow JS/Py/rest/RPC calls to the player f
 + Easy remote tools; desktop tooling; widget development.
 + Extendability with plugin scope for sharing.
 
+#### Future
+
+The extra elements I intend to add - for my own gainz.
+
+##### Leap Scrubber.
+
+Using hand gesture control, build a UI button/scrubber for motion control of media:
+
++ Presents as a single button on the ui
++ active upon detection of an 'init' motion
++ Pause play by hand stop/pat geature
++ skip using air stoke; speed for length of step.
++ rewind/fast-forward for scrubbing using hand knob turn motion
++ thumbnail scubber to 'pick', scroll, swipe navigation of the video player.
++ up/down motion for audio.
++ grab for stop/play.
+
+
+
+##### Fast index.
+
+A super fast file index for iterating with a CTRL+SHIFT+P
+
++ local media
++ HTML indexes
++ remote network store
+
+##### Other
+
++ Privacy mode?
++ Media 'bookmark', rename, like/dislike, watch track - on the fly.
++ hoe stop for fast shutdown, but safe persistence.
++
+
+
 ---
 
 I'm essentially looking for a mini netflix for my own legit home movies (all 33 of them :/) and a relic set of mp3s.
@@ -154,12 +189,16 @@ In the command line:
 
 1. Attempt to refresh your VLC Plugins
 
+    ```
     # C:\Program Files\VideoLAN\VLC\
     > vlc-cache-gen.exe C:\Program Files\VideoLAN\VLC\plugins\
+    ```
 
 2. If that fails, delete `plugins.dat` (I renamed it but nothing broke...)
 
+    ```
     C:\Program Files\VideoLAN\VLC\plugins\plugin.dat
+    ```
 
 ---
 

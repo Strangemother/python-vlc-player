@@ -42,25 +42,25 @@ class MouseActionQWidget(QWidget):
         return super(MouseActionQWidget, self).mouseMoveEvent(event)
 
     def mousePressEvent(self, event):
-        print('mouse down')
+        # print('mouse down')
         self.mouse_down(event)
         self._mouse_down = event.pos()
         return super(MouseActionQWidget, self).mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
-        print('mouse up')
+        # print('mouse up')
         self._mouse_down = None
         self.dragging = False
         self.mouse_up(event)
         return super(MouseActionQWidget, self).mouseReleaseEvent(event)
 
     def enterEvent(self, event):
-        print( "Mouse Entered")
+        # print( "Mouse Entered")
         self.mouse_enter(event)
         return super(MouseActionQWidget, self).enterEvent(event)
 
     def leaveEvent(self, event):
-        print( "Mouse Left")
+        # print( "Mouse Left")
         self.mouse_leave(event)
         return super(MouseActionQWidget, self).enterEvent(event)
 
@@ -105,31 +105,31 @@ class MouseActionQWidgetBus(MouseActionQWidget):
 
     def mouse_double_press(self, event):
         '''Action override for the event without altering _builtin_ functionality'''
-        self.bus.emit('mouse_double_press', event)
+        self.bus.mouse('mouse_double_press', event)
 
     def mouse_move(self, event):
         '''Action override for the event without altering _builtin_ functionality'''
-        self.bus.emit('mouse_move', event)
+        self.bus.mouse('mouse_move', event)
 
     def mouse_down(self, event):
         '''Action override for the event without altering _builtin_ functionality'''
-        self.bus.emit('mouse_down', event)
+        self.bus.mouse('mouse_down', event)
 
     def mouse_up(self, event):
         '''Action override for the event without altering _builtin_ functionality'''
-        self.bus.emit('self', event)
+        self.bus.mouse('mouse_up', event)
 
     def mouse_enter(self, event):
         '''Action override for the event without altering _builtin_ functionality'''
-        self.bus.emit('mouse_enter', event)
+        self.bus.mouse('mouse_enter', event)
 
     def mouse_leave(self, event):
         '''Action override for the event without altering _builtin_ functionality'''
-        self.bus.emit('mouse_leave', event)
+        self.bus.mouse('mouse_leave', event)
 
     def mouse_wheel(self, event):
         '''Action override for the event without altering _builtin_ functionality'''
-        self.bus.emit('mouse_wheel', event)
+        self.bus.mouse('mouse_wheel', event)
 
 
 class ContextMenuMixin(object):
@@ -140,7 +140,8 @@ class ContextMenuMixin(object):
 
     def on_context_menu(self, point):
         # show context menu
-        print('context', point)
+        #print('context', point)
+        self.bus.contextmenu_point(id(self), point)
         self.pop_menu.exec_(self.mapToGlobal(point))
 
     def create_mouse_menu(self):
@@ -157,6 +158,7 @@ class ContextMenuMixin(object):
         # helpMenu = mainMenu.addMenu('Help')
 
         # create context menu
+        self.bus.contextmenu_create(id(self))
         self.pop_menu = QMenu(self)
         toggle_play = QAction('&Play | &Pause', self)
         self.pop_menu.addAction(toggle_play)
@@ -167,6 +169,7 @@ class ContextMenuMixin(object):
         quit_app.triggered.connect(self.quit_app_triggered)
         self.pop_menu.addAction(quit_app)
         self.pop_menu.setStyleSheet("color: white")
+        self.bus.contextmenu('contextmenu_created', id(self), self.pop_menu)
 
     def toggle_play_triggered(self, event):
         print('toggle play pause')

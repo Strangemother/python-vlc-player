@@ -100,7 +100,7 @@ class App(object):
 
     def kill(self):
         print('App Kill')
-        bus.get_bus().close()
+        bus.get_bus().emit('kill')
         for player in self.players:
             player.player.stop()
 
@@ -121,6 +121,7 @@ class App(object):
             loop.close()
 
         print('async_loop closed')
+        bus.get_bus().close()
         if error:
             sys.exit(1)
         self.wait_exit()
@@ -133,6 +134,7 @@ class App(object):
         # if error:
         #     raise error
         sys.exit(ev)
+
 
 class QApp(QApplication):
     pass

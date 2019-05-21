@@ -54,10 +54,18 @@ def process_start(config, send_pipe, recv_pipe):
     print("child close.")
 
 
+TRANS = {}
+
 def translate(msg):
     """Convert a given pipe message to the correct solution for plugin content
     return a string - or None for no action.
     """
-    print(f'translate recv {msg}')
+    last = TRANS.get('last', None)
+
+    if str(last) == str(msg):
+        print('.', end='')
+    else:
+        print(f'translate recv {msg}')
+    TRANS['last'] = msg
 
     return None

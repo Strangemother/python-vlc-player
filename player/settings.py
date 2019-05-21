@@ -30,6 +30,7 @@ SETTINGS = dict(
     # If a file is given, should the app autoplay on init load
     autoplay=True,
     root=PLAYER_ROOT,
+    background_color='#3f4d82',
 )
 
 

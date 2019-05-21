@@ -50,6 +50,8 @@ class Bus(object):
     def emit(self, name, *args):
         """Send an event though the bus.
         """
+        if self.exit:
+            return
         self._send_pipe.send(name)
 
     def atexit_close(self):
@@ -70,6 +72,33 @@ class Bus(object):
         self._recv_pipe = None
         self.process.join()
         print('bus closed')
+
+    def drop_event(self, event, name='dragdrop-drop'):
+        """Content given to the interface in the form of 'drag drop'.
+        The event is not threadsafe. Convert the event to a thin object
+        and dispatch an event.
+        """
+        self.emit('dragdrop-drop')
+
+    def mouse(self, name, event):
+        self.emit(name,)
+
+    def contextmenu_create(self, owner_id):
+        self.emit('contextmenu_create')
+
+    def contextmenu_point(self, owner_id, point):
+        self.emit('contextmenu_point')
+
+    def contextmenu(self, name, owner_id, menu=None):
+        self.emit(name,)
+
+    def move(self, owner_id, event):
+        self.emit('move', owner_id, )
+
+    def resize(self, owner_id, event):
+        self.emit('resize', owner_id, )
+
+
 
 import os
 
@@ -100,7 +129,7 @@ def _async_mananger(app):
 
     while run:
 
-        yield from asyncio.sleep(.1)
+        yield from asyncio.sleep(1)
 
         if bus.exit:
             print('async_mananger loop bus.exit')
@@ -113,7 +142,7 @@ def _async_mananger(app):
             app.players[0].get_player().stop()
             counter = 0
             print('Executing shutdown')
-        print("- async_mananger Executed", os.getpid(), os.getppid())
+        # print("- async_mananger Executed", os.getpid(), os.getppid())
     print("- xx async_mananger exit", os.getpid(), os.getppid())
 
 
