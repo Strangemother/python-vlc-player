@@ -6,6 +6,7 @@ ffmpeg-20180310-950170b-win64-static
 libav-x86_64-w64-mingw32-11
 local.rdp
 src.spec
+**/old/
 
 #################
 ## Eclipse
@@ -226,3 +227,4 @@ pip-log.txt
 *.dll
 gtk+-bundle_2.22.1-20101229_win64.zip
 env*/ 
+old/__main__.spec
