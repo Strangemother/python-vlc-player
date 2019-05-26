@@ -107,7 +107,6 @@ class MediaPlayer(ResizeEventMixin, MoveEventMixin, OverlayMixin,
         if isinstance(geometry, str) is False:
             self.restoreGeometry(geometry)
 
-
     def present(self):
         self.bus.emit('pre-present', id(self))
         self.build_view()

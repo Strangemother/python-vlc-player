@@ -26,7 +26,7 @@ SETTINGS = dict(
     images='{assets}/images',
     cache='{assets}/cache',
     # Filename loaded initially
-    file="M:/tv/Men.Behaving.Badly.Season.5.DVD.x264/Men.Behaving.Badly.S05E02.The.Good.Pub.Guide.mkv",
+    file="M:/Movies/Startrek TNG/Star.Trek.TNG.S03.COMPLETE.FS.DL.DVDRiP.Xvid-BEX.par2/Star.Trek.TNG.S03E14.Riker.unter.Verdacht.FS.DL.DVDRiP.Xvid-BEX.avi",
     # If a file is given, should the app autoplay on init load
     autoplay=True,
     root=PLAYER_ROOT,
