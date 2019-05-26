@@ -27,23 +27,27 @@ class Bus(object):
     exit = False
 
     def __init__(self, config=None):
-        send_pipe, recv_pipe = Pipe()
+
+        # In duplex mode False, a pip may only be one direction
+        # RECV, SEND.
+        client_to_pipe, to_pipe = Pipe(duplex=False)
+        from_pipe, client_from_pipe = Pipe(duplex=False)
         conf = config or self.config
-        p = Process(target=process_start, args=(conf, send_pipe, recv_pipe))
+        p = Process(target=process_start, args=(conf, client_to_pipe, client_from_pipe))
         # recv_pipe = child_send_pipe
         # send_pipe = child_recv_pipe
         print('start proc, parent sleep 1')
         p.start()
         print('Parent Wait for child "hello"')
-        print("Parent recv:", recv_pipe.recv())
+        print("Parent recv:", from_pipe.recv())
         print('Parent received ^^. Sending response...')
-        send_pipe.send('No eggs.')
+        to_pipe.send('No eggs.')
         print('Parent sent reponse.')
-        time.sleep(1)
-        send_pipe.send('foo')
+        #time.sleep(1)
+        to_pipe.send('foo')
         self.process = p
-        self._send_pipe = send_pipe
-        self._recv_pipe = recv_pipe
+        self._send_pipe = to_pipe
+        self._recv_pipe = from_pipe
 
         #atexit.register(self.atexit_close)
 
@@ -53,6 +57,23 @@ class Bus(object):
         if self.exit:
             return
         self._send_pipe.send(name)
+
+    def pump(self, counter=-1):
+        """Step the bus pipe and receive any waiting messages.
+        """
+        pipe = self._recv_pipe
+        msg = None
+
+        print('>')
+
+        msgs = ()
+        while pipe.poll(.1):
+            msg = pipe.recv()
+            if msg is not None:
+                msgs += (msg, )
+        if len(msgs) > 0:
+            print('Bus.pump recv:', len(msgs))
+        return msgs
 
     def atexit_close(self):
         print('atexit_close')
@@ -98,10 +119,7 @@ class Bus(object):
     def resize(self, owner_id, event):
         self.emit('resize', owner_id, )
 
-
-
 import os
-
 
 @asyncio.coroutine
 async def async_mananger_process(*args):
@@ -122,6 +140,11 @@ async def async_mananger(*args):
     return await _async_mananger(*args)
 
 @asyncio.coroutine
+async def bus_pump():
+    return bus.pump()
+
+
+@asyncio.coroutine
 def _async_mananger(app):
     print("\n!! - async_mananger Executed", os.getpid(), os.getppid())
     counter = 0
@@ -137,11 +160,12 @@ def _async_mananger(app):
             continue
 
         counter += 1
-
+        yield from bus_pump()
+        #print('_async_mananger while step', counter)
         if counter > 60:
-            app.players[0].get_player().stop()
+            # app.players[0].get_player().stop()
             counter = 0
-            print('Executing shutdown')
+            # print('Executing shutdown')
         # print("- async_mananger Executed", os.getpid(), os.getppid())
     print("- xx async_mananger exit", os.getpid(), os.getppid())
 
