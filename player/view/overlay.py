@@ -61,7 +61,18 @@ class Overlay(QMainWindow, MouseActionQWidget, FlagsMixin):
         parent.moved.connect(self._move)
         parent.play_event.connect(self._seat)
 
-        self.draw_layers = (Draw(), Drawable(), HoverFrame())
+        self.draw_layers = (
+            #Draw(),
+            #Drawable(),
+            HoverFrame(),
+            Text(),
+            Drawable(ellipse,
+                #pos=Qt.AlignCenter,
+                xy=(50,50),
+                wh=(30, ),
+                color=(0, 255, 10, 150)),
+        )
+
         self.show()
         # self.pycwnd = win32ui.CreateWindowFromHandle(whndl)
 
@@ -117,6 +128,8 @@ class Overlay(QMainWindow, MouseActionQWidget, FlagsMixin):
     def draw_frame(self, qp, e):
         step = self._step
         psize = self.parent.size()
+        qp.setPen(Qt.NoPen)
+
         for layer in self.draw_layers:
             layer.size = psize
             layer.frame(qp, step, e)
@@ -125,15 +138,22 @@ class Overlay(QMainWindow, MouseActionQWidget, FlagsMixin):
 def place(x,y, w, h=None):
     return (x, y, x + w, y + (h or w))
 
+
 def box(qp, coords, color):
     qp.setBrush(QColor(*color))
     qp.drawRect(*coords)
 
 
 def ellipse(qp, coords, color):
+    qp.setRenderHint( QPainter.Antialiasing )
     qp.setBrush(QColor(*color))
     qp.drawEllipse(*coords)
 
+
+def text(qp, coords, **params):
+    qp.setPen(QColor(*params['color']))
+    qp.setFont(QFont(params.get('font'), params.get('font_size')))
+    qp.drawText(params.get('bound', None), coords, params.get('text'))
 
 
 def  circle(qp, coords, color):
@@ -146,40 +166,80 @@ class Draw(object):
         col = QColor(0, 0, 0)
         #col.setNamedColor('#d4d4d4')
         #qp.setPen(col)
-
-        qp.setPen(Qt.NoPen)
-        #qp.setPen(QColor(255, 0, 0))
+        qp.setPen(QColor(255, 255, 255))
         qp.setFont(QFont('Open Sans', 20))
         qp.drawText(e.rect(), Qt.AlignCenter, 'apples')
         #box(qp,(10, 10 + step, 60, 15 + step),(200, 0, 0, 44),)
         #box(qp, (130, 15, 90, 60), (255, 80, 0, 160))
-        center = (250, 15, 90, 60)
-        marked = place(100, 100, 50)
+        qp.setPen(Qt.NoPen)
+        marked = self.position(qp)
         ellipse(qp, marked, (255, 14, 0, 50))
+
+    def position(self, qp):
+        return place(100, 100, 50)
 
 
 class Drawable(Draw):
 
-    color = (0,0,0,100)
+    color = (0,0,0, 100)
     function = staticmethod(box)
     xy = (150, 100, )
     wh = (50, )
+    clear = True
 
-    def draw(self, qp, step):
-        marked = place(*self.xy, *self.wh)
-        method = self.function
-        col = self.color
-        method(qp, marked,  col)
+    def __init__(self, function=None, **kw):
+        if function is not None:
+            self.function = function
+            staticmethod(self.function)
+
+        if kw.get('pos', None) is not None:
+            self.xy=None
+
+        self.__dict__.update(kw)
 
     def frame(self, qp, step, e):
-        self.draw(qp, step)
+        if self.clear:
+            qp.setPen(Qt.NoPen)
+        self.draw(qp, step, e)
+
+    def draw(self, qp, step, e):
+
+        marked = self.position(qp)
+        method = self.function
+        return method(qp, marked,  self.color)
+
+    def position(self, qp):
+        if hasattr(self, 'pos'):
+            return self.pos
+        return place(*self.xy, *self.wh)
+
+
+class Text(Drawable):
+    function = staticmethod(text)
+    font = 'Open Sans'
+    font_size = 20
+    text = 'placeholder'
+
+    def draw(self, qp, step, e):
+        position = self.position(qp)
+        method = self.function
+        return method(qp, position,
+            font=self.font,
+            bound=e.rect(),
+            font_size=self.font_size,
+            text=self.text,
+            color=self.color
+            )
+
+    def position(self, qp):
+        return Qt.AlignCenter
 
 
 class HoverFrame(Drawable):
     """A unit over the player to show meta data and input actions
     such as a play button.
     """
-    color = (0,0,0, 100)
+    color = (0,0,0, 150)
     function = staticmethod(box)
     xy = (0, 0)
     wh = (200, 50)
