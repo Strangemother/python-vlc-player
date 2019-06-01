@@ -140,12 +140,13 @@ class ContextMenuMixin(object):
 
     def on_context_menu(self, point):
         # show context menu
-        #print('context', point)
+        print('context', point)
         self.bus.contextmenu_point(id(self), point)
         self.pop_menu.exec_(self.mapToGlobal(point))
 
     def create_mouse_menu(self):
         # set button context menu policy
+        print('Make context menu')
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.on_context_menu)
 
@@ -158,18 +159,22 @@ class ContextMenuMixin(object):
         # helpMenu = mainMenu.addMenu('Help')
 
         # create context menu
-        self.bus.contextmenu_create(id(self))
-        self.pop_menu = QMenu(self)
-        toggle_play = QAction('&Play | &Pause', self)
-        self.pop_menu.addAction(toggle_play)
-        toggle_play.triggered.connect(self.toggle_play_triggered)
-        self.pop_menu.addAction(QAction('test1', self))
-        self.pop_menu.addSeparator()
+        res = self.bus.contextmenu_create(id(self))
+        if res is None:
+            self.pop_menu = self.default_contextmenu()
+
+    def default_contextmenu(self):
+        pop_menu = QMenu(self)
+        # toggle_play = QAction('&Play | &Pause', self)
+        # pop_menu.addAction(toggle_play)
+        # toggle_play.triggered.connect(self.toggle_play_triggered)
+        # pop_menu.addAction(QAction('test1', self))
+        # pop_menu.addSeparator()
         quit_app = QAction('&Quit', self)
         quit_app.triggered.connect(self.quit_app_triggered)
-        self.pop_menu.addAction(quit_app)
-        self.pop_menu.setStyleSheet("color: white")
-        self.bus.contextmenu('contextmenu_created', id(self), self.pop_menu)
+        pop_menu.addAction(quit_app)
+        pop_menu.setStyleSheet("color: white")
+        self.bus.contextmenu('contextmenu_created', id(self), pop_menu)
 
     def toggle_play_triggered(self, event):
         print('toggle play pause')

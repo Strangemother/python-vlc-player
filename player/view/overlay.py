@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
         QPushButton, QMenu, QAction, QLabel
 
     )
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QFont
 from PyQt5.QtCore import Qt, QTimer, QSize
 from flags import FlagsMixin
 from input.mouse import MouseActionQWidget
@@ -60,6 +60,8 @@ class Overlay(QMainWindow, MouseActionQWidget, FlagsMixin):
         parent.resized.connect(self._resize)
         parent.moved.connect(self._move)
         parent.play_event.connect(self._seat)
+
+        self.draw_layers = (Draw(), Drawable(), HoverFrame())
         self.show()
         # self.pycwnd = win32ui.CreateWindowFromHandle(whndl)
 
@@ -109,20 +111,75 @@ class Overlay(QMainWindow, MouseActionQWidget, FlagsMixin):
         qp = QPainter()
         qp.begin(self)
         self._step += 1
-        self.draw_frame(qp)
+        self.draw_frame(qp, e)
         qp.end()
 
-    def draw_frame(self, qp):
+    def draw_frame(self, qp, e):
+        step = self._step
+        psize = self.parent.size()
+        for layer in self.draw_layers:
+            layer.size = psize
+            layer.frame(qp, step, e)
 
+
+def place(x,y, w, h=None):
+    return (x, y, x + w, y + (h or w))
+
+def box(qp, coords, color):
+    qp.setBrush(QColor(*color))
+    qp.drawRect(*coords)
+
+
+def ellipse(qp, coords, color):
+    qp.setBrush(QColor(*color))
+    qp.drawEllipse(*coords)
+
+
+
+def  circle(qp, coords, color):
+    coords += (coords[-1], )
+
+
+class Draw(object):
+
+    def frame(self, qp, step, e):
         col = QColor(0, 0, 0)
-        col.setNamedColor('#d4d4d4')
-        qp.setPen(col)
+        #col.setNamedColor('#d4d4d4')
+        #qp.setPen(col)
 
-        qp.setBrush(QColor(200, 0, 0,44))
-        qp.drawRect(10, 10+self._step, 60, 15+self._step)
+        qp.setPen(Qt.NoPen)
+        #qp.setPen(QColor(255, 0, 0))
+        qp.setFont(QFont('Open Sans', 20))
+        qp.drawText(e.rect(), Qt.AlignCenter, 'apples')
+        #box(qp,(10, 10 + step, 60, 15 + step),(200, 0, 0, 44),)
+        #box(qp, (130, 15, 90, 60), (255, 80, 0, 160))
+        center = (250, 15, 90, 60)
+        marked = place(100, 100, 50)
+        ellipse(qp, marked, (255, 14, 0, 50))
 
-        qp.setBrush(QColor(255, 80, 0, 160))
-        qp.drawRect(130, 15, 90, 60)
 
-        qp.setBrush(QColor(25, 0, 90, 200))
-        qp.drawEllipse(250, 15, 90, 60)
+class Drawable(Draw):
+
+    color = (0,0,0,100)
+    function = staticmethod(box)
+    xy = (150, 100, )
+    wh = (50, )
+
+    def draw(self, qp, step):
+        marked = place(*self.xy, *self.wh)
+        method = self.function
+        col = self.color
+        method(qp, marked,  col)
+
+    def frame(self, qp, step, e):
+        self.draw(qp, step)
+
+
+class HoverFrame(Drawable):
+    """A unit over the player to show meta data and input actions
+    such as a play button.
+    """
+    color = (0,0,0, 100)
+    function = staticmethod(box)
+    xy = (0, 0)
+    wh = (200, 50)

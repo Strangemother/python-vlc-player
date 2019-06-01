@@ -10,7 +10,6 @@ def info(title):
     print('process id:', os.getpid())
 
 
-
 def process_start(config, from_pipe, send_pipe, ):
     """Start the plugin manager - knowning this method runs within an isolated
     process. Communicate through pipes to the parent.

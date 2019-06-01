@@ -64,7 +64,7 @@ class Bus(object):
         pipe = self._recv_pipe
         msg = None
 
-        print('>')
+        # print('>')
 
         msgs = ()
         while pipe.poll(.1):
@@ -105,7 +105,10 @@ class Bus(object):
         self.emit(name,)
 
     def contextmenu_create(self, owner_id):
+        """An event for creating the 'right click' menu
+        Return None to allow the default men"""
         self.emit('contextmenu_create')
+        return None
 
     def contextmenu_point(self, owner_id, point):
         self.emit('contextmenu_point')
