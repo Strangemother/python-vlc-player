@@ -70,7 +70,23 @@ class Overlay(QMainWindow, MouseActionQWidget, FlagsMixin):
                 #pos=Qt.AlignCenter,
                 xy=(50,50),
                 wh=(30, ),
-                color=(0, 255, 10, 150)),
+                color=(0, 255, 10, 150),
+                antialiasing=False,
+            ),
+            Drawable(ellipse,
+                #pos=Qt.AlignCenter,
+                xy=(200,50),
+                wh=(30, ),
+                color=(0, 255, 10, 150),
+                antialiasing=True,
+            ),
+            Drawable(ellipse,
+                #pos=Qt.AlignCenter,
+                xy=(300,50),
+                wh=(30, ),
+                color=(0, 255, 10, 150),
+                antialiasing=False,
+            ),
         )
 
         self.show()
@@ -136,7 +152,7 @@ class Overlay(QMainWindow, MouseActionQWidget, FlagsMixin):
 
 
 def place(x,y, w, h=None):
-    return (x, y, x + w, y + (h or w))
+    return (x, y,  w, h or w)
 
 
 def box(qp, coords, color):
@@ -145,7 +161,6 @@ def box(qp, coords, color):
 
 
 def ellipse(qp, coords, color):
-    qp.setRenderHint( QPainter.Antialiasing )
     qp.setBrush(QColor(*color))
     qp.drawEllipse(*coords)
 
@@ -186,6 +201,8 @@ class Drawable(Draw):
     xy = (150, 100, )
     wh = (50, )
     clear = True
+    antialiasing = False
+
 
     def __init__(self, function=None, **kw):
         if function is not None:
@@ -200,6 +217,9 @@ class Drawable(Draw):
     def frame(self, qp, step, e):
         if self.clear:
             qp.setPen(Qt.NoPen)
+
+        qp.setRenderHint(QPainter.Antialiasing, on=self.antialiasing)
+
         self.draw(qp, step, e)
 
     def draw(self, qp, step, e):
