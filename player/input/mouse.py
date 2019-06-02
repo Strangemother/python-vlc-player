@@ -184,5 +184,5 @@ class ContextMenuMixin(object):
         print('toggle play pause')
 
     def quit_app_triggered(self, event):
-        print('exit')
+        self.bus.quit({ 'value': event})
 

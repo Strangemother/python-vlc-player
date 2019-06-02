@@ -300,8 +300,12 @@ class Enum:
     """The widget's z-order has changed. This event is never sent to top level windows."""
     _126 = "z_order_change"
 
+import action
+from wlog import color_plog, log as _log
+log = color_plog('magenta').announce(__spec__)
 
-def to_string(name, event=None):
+
+def to_string(name, event=None, **kw):
     """
     given an event and an optional name, return the str translated event object
     """
@@ -318,7 +322,16 @@ def to_string(name, event=None):
         translator = Class()
         cache[Class.__name__] = translator
 
-    return translator.to_transport(event)
+    kw['name'] = kw.get('name', name)
+    return translator.to_transport(event, **kw)
+
+
+def from_string(string_event):
+    try:
+        return eval(string_event)
+    except NameError as e:
+        _log('-- translate.from_string error', str(e), color='red')
+        log('-- String:', string_event)
 
 
 class Translate(object):
@@ -328,21 +341,33 @@ class Translate(object):
     # The name of the event to capture
     event = 'mouse_something'
 
-    def to_transport(self, event):
+    def to_transport(self, event, **kw):
         """Convert the expensive _not_ threadsafe entity to a transportable
         unit.
         Return a string to transport and convert back to a (cheaper) event
         object.
         """
-        result = self.clean(event)
-
+        result = self.clean(event,**kw)
         return str(result)
 
-    def clean(self, event):
-        num = event.type()
-        name = getattr(Enum, f"_{num}")
-        return {'q_type': (num, name), 'Class': self.__class__.__name__}
+    def clean(self, event, **kw):
+        try:
+            num = event.type if event is not None else kw.get('name')
+        except AttributeError as e:
+            print('Translate.clean unexpected Event structure', event)
+            if isinstance(event, dict):
+                num = event.get('type', kw.get('name'))
+                print('Recovering from thin event:', num)
+            else:
+                raise e
 
+
+        if callable(num):
+            num = num()
+        name = getattr(Enum,  f"_{num}", None)
+        res = {'q_type': (num, name), 'Class': self.__class__.__name__}
+        res.update(kw)
+        return res
 
     def from_transport(self, str_event):
         """Convert the given string to an event object
@@ -355,11 +380,11 @@ class Translate(object):
 
 class DefaultTranslate(Translate):
 
-    def to_transport(self, event):
-        return str(self.clean(event))
+    def to_transport(self, event, **kw):
+        return str(self.clean(event, **kw))
 
-    def clean(self, event):
-        res = super().clean(event)
+    def clean(self, event, **kw):
+        res = super().clean(event, **kw)
         addon = {}
         res.update(addon)
         return res

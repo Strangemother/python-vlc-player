@@ -2,13 +2,18 @@
 external pipes.
 Useful for plugin management and state work.
 """
-from concurrent.futures import CancelledError, ProcessPoolExecutor
+import atexit
 import asyncio
-from multiprocessing import Process, Pipe
 import os, time
+from multiprocessing import Process, Pipe
+from concurrent.futures import CancelledError, ProcessPoolExecutor
+
+from player import translate
+from plugin import process_start, DEATH_PILL
 
 
 bus = None
+
 
 def autoload():
     global bus
@@ -18,10 +23,9 @@ def autoload():
 def get_bus():
     return bus
 
-from plugin import process_start, DEATH_PILL
 
-import atexit
-from player import translate
+from wlog import color_plog, log as _log
+log = color_plog('cyan').announce(__spec__)
 
 
 class Bus(object):
@@ -38,15 +42,15 @@ class Bus(object):
         p = Process(target=process_start, args=(conf, client_to_pipe, client_from_pipe))
         # recv_pipe = child_send_pipe
         # send_pipe = child_recv_pipe
-        print('start proc, parent sleep 1')
+        log(f'-- Bus::init start process. Current PID:{os.getpid()}, Parent PID: {os.getppid()}')
         p.start()
-        print('Parent Wait for child "hello"')
-        print("Parent recv:", from_pipe.recv())
-        print('Parent received ^^. Sending response...')
+        log('-- Bus::init Wait for child "hello"')
+        log("-- Bus::init recv:", from_pipe.recv())
+        log('-- Bus::init received ^^. Sending response...')
         to_pipe.send('No eggs.')
-        print('Parent sent reponse.')
+        log('-- Bus::init sent reponse.')
         #time.sleep(1)
-        to_pipe.send('foo')
+        to_pipe.send('action.init_all()')
         self.process = p
         self._send_pipe = to_pipe
         self._recv_pipe = from_pipe
@@ -59,6 +63,9 @@ class Bus(object):
         if self.exit:
             return
         self._send_pipe.send(name)
+
+    def transmit(self, name, event=None, **kw):
+        self.emit(translate.to_string(name, event, **kw))
 
     def pump(self, counter=-1):
         """Step the bus pipe and receive any waiting messages.
@@ -102,77 +109,91 @@ class Bus(object):
         The event is not threadsafe. Convert the event to a thin object
         and dispatch an event.
         """
-        self.emit('dragdrop-drop')
+        #self.emit('dragdrop-drop')
+        self.transmit(name, event)
 
     def mouse(self, name, event):
-        self.emit(name,)
-
-        self.emit(translate.to_string(name, event))
+        #self.emit(name,)
+        #self.emit(translate.to_string(name, event))
+        self.transmit(name, event)
 
     def contextmenu_create(self, owner_id):
         """An event for creating the 'right click' menu
         Return None to allow the default men"""
-        self.emit('contextmenu_create')
+        #self.emit('contextmenu_create')
+        self.transmit('contextmenu_create', owner_id=owner_id)
         return None
 
     def contextmenu_point(self, owner_id, point):
-        self.emit('contextmenu_point')
+        #self.emit('contextmenu_point')
+        self.transmit('contextmenu_point',
+            owner_id=owner_id,
+            point=point
+            )
 
     def contextmenu(self, name, owner_id, menu=None):
-        self.emit(name,)
+        #self.emit(name,)
+        self.transmit(name, owner_id=owner_id)
 
     def move(self, owner_id, event):
-        self.emit('move', owner_id, )
+        #self.emit('move', owner_id, )
+        self.transmit('move', event, owner_id=owner_id)
 
     def resize(self, owner_id, event):
-        self.emit('resize', owner_id, )
+        #self.emit('resize', owner_id, )
+        self.transmit('resize', event, owner_id=owner_id)
 
-import os
+    def quit(self, event):
+        self.transmit('quit', event)
 
-@asyncio.coroutine
+
+#@asyncio.coroutine
 async def async_mananger_process(*args):
     # Loop slowly in the background pumping the asyc queue. Upon keyboard error
     # this will error earlier than a silent websocket message queue.
     loop = asyncio.get_event_loop()
+    print("\n!! - async_mananger_process", os.getpid(), os.getppid())
 
     with ProcessPoolExecutor() as pool:
         result = await loop.run_in_executor(pool, _async_mananger, *args)
         print('custom process pool', result)
 
 
-@asyncio.coroutine
+#@asyncio.coroutine#
 async def async_mananger(*args):
     # Loop slowly in the background pumping the asyc queue. Upon keyboard error
     # this will error earlier than a silent websocket message queue.
     #loop = asyncio.get_event_loop()
     return await _async_mananger(*args)
 
-@asyncio.coroutine
-def bus_pump():
-    return bus.pump()
 
-
-@asyncio.coroutine
-def _async_mananger(app):
+#@asyncio.coroutine
+async def _async_mananger(app):
     print("\n!! - async_mananger Executed", os.getpid(), os.getppid())
     run = 1
 
     while run:
-
-        yield from asyncio.sleep(.2)
+        # yield from asyncio.sleep(.2)
+        await asyncio.sleep(.2)
 
         if bus.exit:
             print('async_mananger loop bus.exit')
             run = 0
             continue
-
         # yield from bus_pump()
-        actions = yield from bus_pump()
+        actions = await bus_pump()
+        # actions = yield from bus_pump()
         for action in actions:
             print('perform', action)
             eval(action)
         # print("- async_mananger Executed", os.getpid(), os.getppid())
     print("- xx async_mananger exit", os.getpid(), os.getppid())
+
+
+#@asyncio.coroutine
+async def bus_pump():
+    return bus.pump()
+
 
 
 autoload()
