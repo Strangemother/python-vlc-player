@@ -142,6 +142,9 @@ class ContextMenuMixin(object):
         # show context menu
         print('context', point)
         self.bus.contextmenu_point(id(self), point)
+        if self.pop_menu is None:
+            print('No right click menu.')
+            return False
         self.pop_menu.exec_(self.mapToGlobal(point))
 
     def create_mouse_menu(self):
@@ -175,6 +178,7 @@ class ContextMenuMixin(object):
         pop_menu.addAction(quit_app)
         pop_menu.setStyleSheet("color: white")
         self.bus.contextmenu('contextmenu_created', id(self), pop_menu)
+        return pop_menu
 
     def toggle_play_triggered(self, event):
         print('toggle play pause')

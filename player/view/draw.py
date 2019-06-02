@@ -12,6 +12,30 @@ from flags import FlagsMixin
 from input.mouse import MouseActionQWidget
 
 
+class FramePaintMixin(object):
+    _step = -1
+    parent = None
+
+    def paintEvent(self, e):
+
+        qp = QPainter()
+        qp.begin(self)
+        self._step += 1
+        self.draw_frame(qp, e)
+        qp.end()
+
+    def draw_frame(self, qp, e):
+        step = self._step
+        psize = None
+        if self.parent is not None:
+            psize = self.parent.size()
+        qp.setPen(Qt.NoPen)
+
+        for layer in self.draw_layers:
+            layer.size = psize
+            layer.frame(qp, step, e)
+
+
 def place(x,y, w, h=None):
     return (x, y,  w, h or w)
 
@@ -29,6 +53,9 @@ def ellipse(qp, coords, color):
 def text(qp, coords, **params):
     qp.setPen(QColor(*params['color']))
     qp.setFont(QFont(params.get('font'), params.get('font_size')))
+    if isinstance(coords, tuple):
+        qp.drawText(*coords, params.get('text'))
+        return
     qp.drawText(params.get('bound', None), coords, params.get('text'))
 
 
@@ -37,6 +64,8 @@ def  circle(qp, coords, color):
 
 
 class Draw(object):
+
+    draw_layers = ()
 
     def frame(self, qp, step, e):
         col = QColor(0, 0, 0)
@@ -55,7 +84,7 @@ class Draw(object):
         return place(100, 100, 50)
 
 
-class Drawable(Draw):
+class Drawable(Draw, FramePaintMixin):
 
     color = (0,0,0, 200)
     function = staticmethod(box)
@@ -87,7 +116,9 @@ class Drawable(Draw):
 
         marked = self.position(qp)
         method = self.function
-        return method(qp, marked,  self.color)
+        method(qp, marked,  self.color)
+        # decent after the primary paint.
+        self.draw_frame(qp, e)
 
     def position(self, qp):
         if hasattr(self, 'pos'):
@@ -113,6 +144,9 @@ class Text(Drawable):
             )
 
     def position(self, qp):
+        if hasattr(self, 'pos'):
+            return self.pos
+        #return (0,0,)
         return Qt.AlignCenter
 
 
@@ -120,7 +154,14 @@ class HoverFrame(Drawable):
     """A unit over the player to show meta data and input actions
     such as a play button.
     """
-    color = (0,0,0, 150)
+    color = (100,0,0, 150)
     function = staticmethod(box)
     xy = (0, 0)
     wh = (200, 50)
+
+    draw_layers = (
+            Text(text='Cheese',
+                xy=xy,
+                pos=(10,10,),
+                color=(255,255,255,255)),
+        )

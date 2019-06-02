@@ -1,5 +1,5 @@
 import queue
-import time, os
+import time, os, sys
 
 DEATH_PILL = '~~some arbitrary string for STOP~~'
 
@@ -36,7 +36,6 @@ def process_start(config, from_pipe, send_pipe, ):
             print('Receive death')
             break
 
-
         return_val = translate(msg)
 
         if DEATH_PILL in (msg, return_val, ):
@@ -63,12 +62,13 @@ def translate(msg):
 
     if str(last) == str(msg):
         print('.', end='')
+        sys.stdout.flush()
     else:
-        print(f'translate recv {msg}', count)
+        print(f'< {msg}', count)
 
-    TRANS['last'] = msg
+    TRANS['last'] = str(msg)
 
-    if count > 20:
+    if count > 50:
         # print('send stop from translate.')
         count = 0
         TRANS['count'] = count

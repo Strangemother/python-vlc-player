@@ -21,6 +21,8 @@ def get_bus():
 from plugin import process_start, DEATH_PILL
 
 import atexit
+from player import translate
+
 
 class Bus(object):
     config = None
@@ -71,8 +73,9 @@ class Bus(object):
             msg = pipe.recv()
             if msg is not None:
                 msgs += (msg, )
-        if len(msgs) > 0:
-            print('Bus.pump recv:', len(msgs))
+
+        # if len(msgs) > 0:
+            # print('Bus.pump recv sending back actions:', len(msgs))
         return msgs
 
     def atexit_close(self):
@@ -103,6 +106,8 @@ class Bus(object):
 
     def mouse(self, name, event):
         self.emit(name,)
+
+        self.emit(translate.to_string(name, event))
 
     def contextmenu_create(self, owner_id):
         """An event for creating the 'right click' menu
@@ -143,32 +148,29 @@ async def async_mananger(*args):
     return await _async_mananger(*args)
 
 @asyncio.coroutine
-async def bus_pump():
+def bus_pump():
     return bus.pump()
 
 
 @asyncio.coroutine
 def _async_mananger(app):
     print("\n!! - async_mananger Executed", os.getpid(), os.getppid())
-    counter = 0
     run = 1
 
     while run:
 
-        yield from asyncio.sleep(1)
+        yield from asyncio.sleep(.2)
 
         if bus.exit:
             print('async_mananger loop bus.exit')
             run = 0
             continue
 
-        counter += 1
-        yield from bus_pump()
-        #print('_async_mananger while step', counter)
-        if counter > 60:
-            # app.players[0].get_player().stop()
-            counter = 0
-            # print('Executing shutdown')
+        # yield from bus_pump()
+        actions = yield from bus_pump()
+        for action in actions:
+            print('perform', action)
+            eval(action)
         # print("- async_mananger Executed", os.getpid(), os.getppid())
     print("- xx async_mananger exit", os.getpid(), os.getppid())
 

@@ -25,7 +25,7 @@ class OverlayMixin(object):
         self.play_event.connect(self.overlay_above_all)
 
 
-class Overlay(QMainWindow, MouseActionQWidgetBus, FlagsMixin):
+class Overlay(QMainWindow, MouseActionQWidgetBus, FlagsMixin, draw.FramePaintMixin):
     '''An overlay is a standard (or standalone) window positon over
     the VideoFrame for presenting player information. Using a seperate layer
     bypasses issues with an external hooked hwnd frame, allowing fully
@@ -66,7 +66,8 @@ class Overlay(QMainWindow, MouseActionQWidgetBus, FlagsMixin):
             #Draw(),
             #Drawable(),
             draw.HoverFrame(),
-            draw.Text(text='playing', color=greenish),
+            draw.Text(text='playing', pos=Qt.AlignCenter,
+                color=greenish),
             draw.Drawable(draw.ellipse,
                 #pos=Qt.AlignCenter,
                 xy=(50,50),
@@ -134,19 +135,3 @@ class Overlay(QMainWindow, MouseActionQWidgetBus, FlagsMixin):
 
             self.parent.move(event.globalX() - x,  event.globalY() - y)
 
-    def paintEvent(self, e):
-
-        qp = QPainter()
-        qp.begin(self)
-        self._step += 1
-        self.draw_frame(qp, e)
-        qp.end()
-
-    def draw_frame(self, qp, e):
-        step = self._step
-        psize = self.parent.size()
-        qp.setPen(Qt.NoPen)
-
-        for layer in self.draw_layers:
-            layer.size = psize
-            layer.frame(qp, step, e)
