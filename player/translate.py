@@ -326,13 +326,22 @@ def to_string(name, event=None, **kw):
     return translator.to_transport(event, **kw)
 
 
-def from_string(string_event):
+async def from_string(string_event):
     try:
-        return eval(string_event)
+        return await execute(string_event)
     except NameError as e:
         _log('-- translate.from_string error', str(e), color='red')
         log('-- String:', string_event)
 
+async def execute(code):
+    # Make an async function with the code and `exec` it
+    exec(
+        f'async def __ex(): ' +
+        ''.join(f'\n {l}' for l in code.split('\n'))
+    )
+
+    # Get `__ex` from local variables, call it and return the result
+    return await locals()['__ex']()
 
 class Translate(object):
     """Any event transport should extend a translate, for mapping through
@@ -369,13 +378,13 @@ class Translate(object):
         res.update(kw)
         return res
 
-    def from_transport(self, str_event):
+    async def from_transport(self, str_event):
         """Convert the given string to an event object
         return an instance of a cheap translate event - an object like entity.
 
         This will directly translate the result from to_transport
         """
-        return eval(str_event)
+        return await execute(str_event)
 
 
 class DefaultTranslate(Translate):

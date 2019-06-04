@@ -26,12 +26,19 @@ def process_start(config, from_pipe, send_pipe, ):
     send_pipe: send to the parent
     recv_pipe: receive from the parent
     """
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(
-        main(config, from_pipe, send_pipe)
-    )
+    log('plugin.process_start')
+    #loop = asyncio.get_event_loop()
+    #loop.create_task(main(config, from_pipe, send_pipe))
+    asyncio.run(_process_start(config, from_pipe, send_pipe))
 
-    #loop.run_loop()
+async def _process_start(config, from_pipe, send_pipe, ):
+    loop = asyncio.get_running_loop()
+    await asyncio.gather(
+        main(config, from_pipe, send_pipe),
+        action.all(),
+        loop=loop,
+        return_exceptions=True
+    )
 
 
 
@@ -44,6 +51,7 @@ async def main(config, from_pipe, send_pipe):
     log("sleep 1")
 
     await run(config, from_pipe, send_pipe)
+
 
 async def run(config, from_pipe, send_pipe):
     run = 1
@@ -58,7 +66,7 @@ async def run(config, from_pipe, send_pipe):
             log('Receive death')
             break
 
-        return_val = message_translate(msg)
+        return_val = await message_translate(msg)
 
         if DEATH_PILL in (msg, return_val, ):
             run = 0
@@ -90,14 +98,14 @@ def print_msg(msg):
     TRANS['last'] = str(msg)
 
 
-def message_translate(msg):
+async def message_translate(msg):
     """Convert a given pipe message to the correct solution for plugin content
     return a string - or None for no action.
     """
     print_msg(msg)
 
-    event = translate.from_string(msg)
-    str_action = action.get_action(event)
+    event = await translate.from_string(msg)
+    str_action = await action.get_action(event)
     if str_action:
         return str_action
 

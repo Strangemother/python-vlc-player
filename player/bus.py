@@ -49,7 +49,7 @@ class Bus(object):
         log('-- Bus::init received ^^. Sending response...')
         to_pipe.send('No eggs.')
         log('-- Bus::init sent reponse.')
-        #time.sleep(1)
+        # accepted at translate.Translate::from_transport
         to_pipe.send('action.init_all()')
         self.process = p
         self._send_pipe = to_pipe
@@ -152,7 +152,7 @@ async def async_mananger_process(*args):
     # Loop slowly in the background pumping the asyc queue. Upon keyboard error
     # this will error earlier than a silent websocket message queue.
     loop = asyncio.get_event_loop()
-    print("\n!! - async_mananger_process", os.getpid(), os.getppid())
+    log(f"\n!! - async_mananger_process - PID: {os.getpid()}, Parent: {os.getppid()}")
 
     with ProcessPoolExecutor() as pool:
         result = await loop.run_in_executor(pool, _async_mananger, *args)
@@ -169,7 +169,7 @@ async def async_mananger(*args):
 
 #@asyncio.coroutine
 async def _async_mananger(app):
-    print("\n!! - async_mananger Executed", os.getpid(), os.getppid())
+    log(f"\n!! - async_mananger Executed - PID: {os.getpid()}, Parent: {os.getppid()}")
     run = 1
 
     while run:
@@ -187,7 +187,7 @@ async def _async_mananger(app):
             print('perform', action)
             eval(action)
         # print("- async_mananger Executed", os.getpid(), os.getppid())
-    print("- xx async_mananger exit", os.getpid(), os.getppid())
+    log(f"- xx async_mananger exit - PID: {os.getpid()}, Parent: {os.getppid()}")
 
 
 #@asyncio.coroutine
